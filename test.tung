@@ -1,0 +1,7 @@
+x = "Hello"
+
+if x == "HelloWorld":
+    print x
+else:
+    print "Not Hello"
+endif
