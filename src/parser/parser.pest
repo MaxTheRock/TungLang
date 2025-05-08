@@ -5,43 +5,57 @@ file = { SOI ~ (statement ~ NEWLINE*)* ~ EOI }
 // Comments are allowed anywhere and should be skipped
 COMMENT = _{ "#" ~ (!NEWLINE ~ ANY)* ~ (NEWLINE | EOI) }
 
-// A statement can either be an assignment or a function call.
-statement = { assignment | function_call }
+// A statement can be an assignment, function call, or control structure.
+statement = { assignment | function_call | if_statement }
 
-// An assignment is a key-value pair where the key is an identifier and the value is a number.
-assignment = { identifier ~ "=" ~ value }
+// Assignment with expression as value
+assignment = { identifier ~ "=" ~ expression }
 
-// A function call consists of an identifier (function name) followed by arguments enclosed in parentheses.
-// Arguments can be expressions separated by commas.
+// Function call with optional arguments
 function_call = { identifier ~ "(" ~ (expression ~ ("," ~ expression)*)? ~ ")" }
 
-// An expression can be an identifier, a value, or a binary expression.
-expression = { binary_expr | identifier | value }
+// If statement - simplified
+if_statement = { 
+    "if" ~ ("(" ~ expression ~ ")" | expression) ~ ":" ~ NEWLINE* ~
+    statement* ~
+    "endif"
+}
 
-// Binary expressions can use any expression on either side, not just identifiers
-binary_expr = { term ~ operator ~ term }
+// Expression
+expression = { comparison | term }
 
-// Term can be an identifier, a value, or a parenthesized expression
-term = { identifier | value | "(" ~ expression ~ ")" }
+// Comparison expression
+comparison = { term ~ comparison_op ~ term }
 
-// Operators for binary expressions.
+// Term
+term = { factor ~ (operator ~ factor)* }
+
+// Factor
+factor = { identifier | value | "(" ~ expression ~ ")" }
+
+// Arithmetic operators
 operator = { "+" | "-" | "*" | "/" }
+// Comparison operators
+comparison_op = { "==" | "!=" | "<" | ">" | "<=" | ">=" }
 
-// Identifiers are alphanumeric strings (e.g., variable names or function names).
+// Identifiers
 identifier = @{ ASCII_ALPHANUMERIC+ }
 
-// Values can be either a number or a string literal.
-value = { number | string_literal }
+// Values
+value = { number | string_literal | boolean }
 
-// Numbers are sequences of digits.
+// Numbers
 number = { ASCII_DIGIT+ }
 
-// String literals are enclosed in double quotes.
+// String literals
 string_literal = { "\"" ~ string_content ~ "\"" }
 string_content = { (!("\"") ~ ANY)* }
 
-// Whitespace includes spaces and tabs
+// Boolean values
+boolean = { "true" | "false" }
+
+// Silent whitespace
 WHITESPACE = _{ " " | "\t" }
 
-// NEWLINE is defined separately for better control in the grammar
+// Newlines
 NEWLINE = _{ "\r\n" | "\n" | "\r" }

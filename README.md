@@ -1,2 +1,0 @@
-# TungLang
-MaxTheRock's fault

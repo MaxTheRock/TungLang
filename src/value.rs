@@ -4,6 +4,7 @@ use std::fmt;
 pub enum Value {
     Number(i64),
     String(String),
+    Boolean(bool),
 }
 
 impl Value {
@@ -11,6 +12,7 @@ impl Value {
         match self {
             Value::Number(_) => "number",
             Value::String(_) => "string",
+            Value::Boolean(_) => "boolean",
         }
     }
 }
@@ -21,6 +23,7 @@ impl fmt::Display for Value {
         match self {
             Value::Number(n) => write!(f, "{}", n),
             Value::String(s) => write!(f, "{}", s),
+            Value::Boolean(b) => write!(f, "{}", b),
         }
     }
 }

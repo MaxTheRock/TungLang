@@ -1,54 +1,53 @@
-mod interpreter;
-mod parser;
-mod value;
-
+use miette::{IntoDiagnostic, Result};
+use pest::Parser;
 use std::env;
 use std::fs;
 use std::process;
 
+mod diagnostics;
+mod interpreter;
+mod parser;
+mod value;
+
+use crate::diagnostics::TungError;
 use crate::interpreter::Interpreter;
 use crate::parser::{Rule, TungParser};
-use pest::Parser;
 
-fn main() {
+fn main() -> Result<()> {
+    // Get command-line arguments
     let args: Vec<String> = env::args().collect();
 
+    // Check if a file path was provided
     if args.len() < 2 {
-        eprintln!("Usage: {} <file.tung>", args[0]);
+        eprintln!("Usage: {} <file_path>", args[0]);
         process::exit(1);
     }
 
+    // Read the file
     let file_path = &args[1];
+    println!("Running file: {}", file_path);
 
-    match fs::read_to_string(file_path) {
-        Ok(content) => {
-            // Try with the file rule which is defined in your grammar
-            match TungParser::parse(Rule::file, &content) {
-                Ok(parsed) => {
-                    // Initialize interpreter and run the program
-                    let mut interpreter: Interpreter = Interpreter::new();
-                    interpreter.interpret(parsed);
-                }
-                Err(err) => {
-                    eprintln!("Error parsing file: {}", err);
-                    eprintln!("Make sure your file follows the Tung language syntax.");
+    let source = fs::read_to_string(file_path)
+        .into_diagnostic()
+        .map_err(|err| {
+            miette::miette!(code = "tung::file_error", "Failed to read file: {}", err)
+        })?;
 
-                    // For debugging: try with other potential entry rules if available
-                    for rule in [Rule::statement, Rule::expression].iter() {
-                        println!("Attempting to parse with rule {:?}...", rule);
-                        if let Ok(_) = TungParser::parse(*rule, &content) {
-                            println!("Parsing succeeded with rule {:?}", rule);
-                            break;
-                        }
-                    }
+    // Parse the file
+    let pairs = TungParser::parse(Rule::file, &source).map_err(|err| {
+        let message = format!("Parse error: {}", err);
+        TungError::ParserError(message, None)
+    })?;
 
-                    process::exit(1);
-                }
-            }
-        }
-        Err(err) => {
-            eprintln!("Error reading file: {}", err);
-            process::exit(1);
-        }
+    // Create an interpreter with the source for better error reporting
+    // Clone source for the interpreter to avoid ownership issues
+    let mut interpreter = Interpreter::with_source(source.clone());
+
+    // Interpret the parsed file
+    if let Err(err) = interpreter.interpret(pairs) {
+        // Let miette handle the error display
+        return Err(err.into());
     }
+
+    Ok(())
 }
