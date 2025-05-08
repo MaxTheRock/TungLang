@@ -1,7 +1,5 @@
-x = "Hello"
+x = 5
+y = 3
 
-if x == "HelloWorld":
-    print x
-else:
-    print "Not Hello"
-endif
+print(x)
+print(y)

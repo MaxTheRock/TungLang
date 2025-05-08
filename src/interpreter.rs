@@ -1,142 +1,255 @@
-use crate::ast::{Expr, Operator, Statement};
-use crate::error::{Result, TungError};
+use pest::iterators::Pairs;
 use std::collections::HashMap;
 
-pub struct Interpreter {
-    pub variables: HashMap<String, Value>,
-    pub source: String,
-}
+use crate::parser::Rule;
+use crate::value::Value;
 
-#[derive(Clone, Debug, PartialEq)]
-pub enum Value {
-    Number(f64),
-    String(String),
-    Boolean(bool),
+pub struct Interpreter {
+    variables: HashMap<String, Value>,
 }
 
 impl Interpreter {
-    pub fn new(source: String) -> Self {
-        Self {
+    pub fn new() -> Self {
+        Interpreter {
             variables: HashMap::new(),
-            source,
         }
     }
 
-    pub fn evaluate(&mut self, expr: &Expr) -> Result<Value> {
-        match expr {
-            Expr::Number(n) => Ok(Value::Number(*n)),
-            Expr::String(s) => Ok(Value::String(s.clone())),
-            Expr::Identifier(name) => {
-                if let Some(value) = self.variables.get(name) {
-                    Ok(value.clone())
-                } else {
-                    Err(TungError::Runtime {
-                        src: self.source.clone(),
-                        span: None,
-                        message: format!("Variable '{}' not defined", name),
-                    }
-                    .into())
-                }
-            }
-            Expr::BinaryOp { left, op, right } => {
-                let left_val = self.evaluate(left)?;
-                let right_val = self.evaluate(right)?;
-
-                match (left_val, op, right_val) {
-                    (Value::Number(l), Operator::Add, Value::Number(r)) => Ok(Value::Number(l + r)),
-                    (Value::Number(l), Operator::Subtract, Value::Number(r)) => {
-                        Ok(Value::Number(l - r))
-                    }
-                    (Value::Number(l), Operator::Multiply, Value::Number(r)) => {
-                        Ok(Value::Number(l * r))
-                    }
-                    (Value::Number(l), Operator::Divide, Value::Number(r)) => {
-                        if r == 0.0 {
-                            Err(TungError::Runtime {
-                                src: self.source.clone(),
-                                span: None,
-                                message: "Division by zero".to_string(),
+    pub fn interpret(&mut self, pairs: Pairs<Rule>) {
+        for pair in pairs {
+            match pair.as_rule() {
+                Rule::file => {
+                    // Process the file rule that contains statements
+                    for statement_pair in pair.into_inner() {
+                        match statement_pair.as_rule() {
+                            Rule::statement => self.handle_statement(statement_pair.into_inner()),
+                            Rule::EOI => (),
+                            _ => {
+                                println!("Unexpected rule in file: {:?}", statement_pair.as_rule())
                             }
-                            .into())
-                        } else {
-                            Ok(Value::Number(l / r))
                         }
                     }
-                    (Value::Number(l), Operator::Equal, Value::Number(r)) => {
-                        Ok(Value::Boolean(l == r))
-                    }
-                    (Value::String(l), Operator::Add, Value::String(r)) => {
-                        Ok(Value::String(format!("{}{}", l, r)))
-                    }
-                    (Value::String(l), Operator::Equal, Value::String(r)) => {
-                        Ok(Value::Boolean(l == r))
-                    }
-                    (Value::String(_), op, Value::String(_)) => Err(TungError::Type {
-                        src: self.source.clone(),
-                        span: None,
-                        message: format!("Operator {:?} not supported for strings", op),
-                    }
-                    .into()),
-                    _ => Err(TungError::Type {
-                        src: self.source.clone(),
-                        span: None,
-                        message: "Type mismatch in binary operation".to_string(),
-                    }
-                    .into()),
                 }
+                _ => println!("Unexpected top-level rule: {:?}", pair.as_rule()),
             }
         }
     }
 
-    pub fn execute(&mut self, stmt: &Statement) -> Result<()> {
-        match stmt {
-            Statement::Assignment { name, value } => {
-                let evaluated = self.evaluate(value)?;
-                self.variables.insert(name.clone(), evaluated);
-                Ok(())
+    fn handle_statement(&mut self, mut pairs: Pairs<Rule>) {
+        if let Some(pair) = pairs.next() {
+            match pair.as_rule() {
+                Rule::assignment => self.handle_assignment(pair.into_inner()),
+                Rule::function_call => self.handle_function_call(pair.into_inner()),
+                _ => println!("Unexpected statement: {:?}", pair.as_rule()),
             }
-            Statement::Print(expr) => {
-                let value = self.evaluate(expr)?;
-                match value {
-                    Value::Number(n) => println!("{}", n),
-                    Value::String(s) => println!("{}", s),
-                    Value::Boolean(b) => println!("{}", b),
-                }
-                Ok(())
-            }
-            Statement::Expression(expr) => {
-                self.evaluate(expr)?;
-                Ok(())
-            }
-            Statement::If {
-                condition,
-                then_block,
-                else_block,
-            } => {
-                let condition_value = self.evaluate(condition)?;
+        }
+    }
 
-                match condition_value {
-                    Value::Boolean(true) => {
-                        for stmt in then_block {
-                            self.execute(stmt)?;
+    fn handle_assignment(&mut self, mut pairs: Pairs<Rule>) {
+        let variable = match pairs.next() {
+            Some(id_pair) if id_pair.as_rule() == Rule::identifier => {
+                // Trim whitespace from the variable name
+                id_pair.as_str().trim().to_string()
+            }
+            _ => {
+                eprintln!("Expected identifier in assignment");
+                return;
+            }
+        };
+
+        let value = match pairs.next() {
+            Some(val_pair) if val_pair.as_rule() == Rule::value => self.parse_value(val_pair),
+            Some(other) => {
+                eprintln!("Expected value, got: {:?}", other.as_rule());
+                Value::Number(0)
+            }
+            None => {
+                eprintln!("No value provided for assignment");
+                Value::Number(0)
+            }
+        };
+
+        self.variables.insert(variable, value);
+    }
+
+    fn parse_value(&self, pair: pest::iterators::Pair<Rule>) -> Value {
+        let pair_rule = pair.as_rule();
+
+        match pair_rule {
+            Rule::value => {
+                // Get the first inner pair which should be either string_literal or number
+                let inner = pair.clone().into_inner().next();
+
+                if let Some(inner_pair) = inner {
+                    match inner_pair.as_rule() {
+                        Rule::string_literal => {
+                            // Get the inner string without quotes
+                            let inner_string = inner_pair.into_inner().next().unwrap().as_str();
+                            Value::String(inner_string.to_string())
+                        }
+                        Rule::number => match inner_pair.as_str().parse::<i64>() {
+                            Ok(num) => Value::Number(num),
+                            Err(_) => {
+                                eprintln!("Failed to parse number: {}", inner_pair.as_str());
+                                Value::Number(0)
+                            }
+                        },
+                        Rule::string_content => {
+                            let content = inner_pair.as_str();
+                            Value::String(content.to_string())
+                        }
+                        _ => {
+                            eprintln!("Unexpected value type: {:?}", inner_pair.as_rule());
+                            Value::Number(0)
                         }
                     }
-                    Value::Boolean(false) => {
-                        for stmt in else_block {
-                            self.execute(stmt)?;
+                } else {
+                    eprintln!("Empty value");
+                    Value::Number(0)
+                }
+            }
+            _ => {
+                eprintln!("Expected value, got {:?}", pair_rule);
+                Value::Number(0)
+            }
+        }
+    }
+
+    fn evaluate_expression(&self, mut pairs: Pairs<Rule>) -> Value {
+        if let Some(pair) = pairs.next() {
+            match pair.as_rule() {
+                Rule::identifier => {
+                    // Trim whitespace from the variable name before lookup
+                    let var_name = pair.as_str().trim();
+                    match self.variables.get(var_name) {
+                        Some(value) => value.clone(),
+                        None => {
+                            eprintln!("Variable not found: {}", var_name);
+                            Value::Number(0)
                         }
-                    }
-                    _ => {
-                        return Err(TungError::Type {
-                            src: self.source.clone(),
-                            span: None,
-                            message: "Condition must evaluate to a boolean".to_string(),
-                        }
-                        .into());
                     }
                 }
+                Rule::value => self.parse_value(pair),
+                Rule::binary_expr => self.evaluate_binary_expr(pair.into_inner()),
+                _ => {
+                    eprintln!("Unexpected expression type: {:?}", pair.as_rule());
+                    Value::Number(0)
+                }
+            }
+        } else {
+            eprintln!("Empty expression");
+            Value::Number(0)
+        }
+    }
 
-                Ok(())
+    fn handle_function_call(&mut self, mut pairs: Pairs<Rule>) {
+        let function_name = match pairs.next() {
+            Some(id_pair) if id_pair.as_rule() == Rule::identifier => id_pair.as_str(),
+            _ => {
+                eprintln!("Expected function name");
+                return;
+            }
+        };
+
+        // Special handling for print function
+        if function_name == "print" {
+            // Get arguments
+            let args: Vec<Value> = pairs
+                .filter(|p| p.as_rule() == Rule::expression)
+                .map(|p| self.evaluate_expression(p.into_inner()))
+                .collect();
+
+            // Print each argument
+            for arg in args {
+                println!("{}", arg);
+            }
+        } else {
+            eprintln!("Unknown function: {}", function_name);
+        }
+    }
+
+    fn evaluate_binary_expr(&self, mut pairs: Pairs<Rule>) -> Value {
+        let left = match pairs.next() {
+            Some(pair) if pair.as_rule() == Rule::identifier => pair.as_str().trim(),
+            _ => {
+                eprintln!("Expected left operand");
+                return Value::Number(0);
+            }
+        };
+
+        let operator = match pairs.next() {
+            Some(pair) if pair.as_rule() == Rule::operator => pair.as_str(),
+            _ => {
+                eprintln!("Expected operator");
+                return Value::Number(0);
+            }
+        };
+
+        let right = match pairs.next() {
+            Some(pair) if pair.as_rule() == Rule::identifier => pair.as_str().trim(),
+            _ => {
+                eprintln!("Expected right operand");
+                return Value::Number(0);
+            }
+        };
+
+        // Get left value
+        let left_val = match self.variables.get(left) {
+            Some(value) => value.clone(),
+            None => {
+                eprintln!("Variable not found: {}", left);
+                return Value::Number(0);
+            }
+        };
+
+        // Get right value
+        let right_val = match self.variables.get(right) {
+            Some(value) => value.clone(),
+            None => {
+                eprintln!("Variable not found: {}", right);
+                return Value::Number(0);
+            }
+        };
+
+        // Handle operations based on types
+        match (left_val, right_val) {
+            // Number operations
+            (Value::Number(left_num), Value::Number(right_num)) => match operator {
+                "+" => Value::Number(left_num + right_num),
+                "-" => Value::Number(left_num - right_num),
+                "*" => Value::Number(left_num * right_num),
+                "/" => {
+                    if right_num == 0 {
+                        eprintln!("Division by zero");
+                        Value::Number(0)
+                    } else {
+                        Value::Number(left_num / right_num)
+                    }
+                }
+                _ => {
+                    eprintln!("Unknown operator for numbers: {}", operator);
+                    Value::Number(0)
+                }
+            },
+
+            // String operations
+            (Value::String(left_str), Value::String(right_str)) => match operator {
+                "+" => Value::String(format!("{}{}", left_str, right_str)),
+                _ => {
+                    eprintln!("Invalid operator for strings: {}", operator);
+                    Value::String(String::new())
+                }
+            },
+
+            // Mixed types
+            (left_val, right_val) => {
+                eprintln!(
+                    "Type mismatch: Cannot perform {} operation between {} and {}",
+                    operator,
+                    left_val.type_name(),
+                    right_val.type_name()
+                );
+                Value::Number(0)
             }
         }
     }
