@@ -4,118 +4,130 @@ use std::collections::HashMap;
 use std::fs;
 use std::sync::RwLock;
 
-#[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct KeywordDefinition {
-    pub original_name: String,
-    pub keyword_type: String,
-    pub description: String,
-    pub aliases: Vec<String>,
+// Define keyword types for categorization
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub enum KeywordType {
+    Function,
+    Control,
+    Statement,
+    Operator,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct KeywordConfig {
-    pub keywords: Vec<KeywordDefinition>,
+// Structure to represent a keyword
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Keyword {
+    pub original_name: String,     // Canonical name (like "print")
+    pub keyword_type: KeywordType, // Type of keyword
+    pub description: String,       // Optional description
 }
 
+// Main keyword registry - a single source of truth
 lazy_static! {
-    // Use RwLock for thread-safe access to the keywords map
-    static ref KEYWORDS_MAP: RwLock<HashMap<String, String>> = RwLock::new(HashMap::new());
+    // Maps all aliases to their canonical keywords
+    pub static ref KEYWORD_REGISTRY: RwLock<HashMap<String, Keyword>> = {
+        let mut registry = HashMap::new();
+
+        // === FUNCTION KEYWORDS ===
+        register_keyword_internal(&mut registry, "print", KeywordType::Function, "Print values to the console", &["print", "tung"]);
+        register_keyword_internal(&mut registry, "input", KeywordType::Function, "Read user input from the console", &["input", "sahur"]);
+        register_keyword_internal(&mut registry, "int", KeywordType::Function, "Convert value to integer", &["int", "tripi"]);
+        register_keyword_internal(&mut registry, "quit", KeywordType::Function, "Exit the program", &["quit", "tralalelo"]);
+
+        // === CONTROL FLOW KEYWORDS ===
+        register_keyword_internal(&mut registry, "if", KeywordType::Control, "Conditional if statement", &["if", "la_vaca"]);
+        register_keyword_internal(&mut registry, "endif", KeywordType::Control, "End of if block", &["endif", "fine_vaca"]);
+
+        // === STATEMENTS ===
+        register_keyword_internal(&mut registry, "var", KeywordType::Statement, "Variable declaration", &["var", "babbo"]);
+
+        // === OPERATORS ===
+        register_keyword_internal(&mut registry, "+", KeywordType::Operator, "Addition operator", &["+", "piu"]);
+        register_keyword_internal(&mut registry, "-", KeywordType::Operator, "Subtraction operator", &["-", "meno"]);
+        register_keyword_internal(&mut registry, "*", KeywordType::Operator, "Multiplication operator", &["*", "per"]);
+        register_keyword_internal(&mut registry, "/", KeywordType::Operator, "Division operator", &["/", "diviso"]);
+
+        register_keyword_internal(&mut registry, "==", KeywordType::Operator, "Equal to", &["==", "uguale"]);
+        register_keyword_internal(&mut registry, "!=", KeywordType::Operator, "Not equal to", &["!=", "diverso"]);
+        register_keyword_internal(&mut registry, ">", KeywordType::Operator, "Greater than", &[">", "maggiore"]);
+        register_keyword_internal(&mut registry, "<", KeywordType::Operator, "Less than", &["<", "minore"]);
+        register_keyword_internal(&mut registry, ">=", KeywordType::Operator, "Greater than or equal to", &[">=", "maggiore_uguale"]);
+        register_keyword_internal(&mut registry, "<=", KeywordType::Operator, "Less than or equal to", &["<=", "minore_uguale"]);
+
+        // === BOOLEAN VALUES ===
+        register_keyword_internal(&mut registry, "true", KeywordType::Statement, "Boolean true value", &["true", "vero"]);
+        register_keyword_internal(&mut registry, "false", KeywordType::Statement, "Boolean false value", &["false", "falso"]);
+
+        RwLock::new(registry)
+    };
 }
 
-/// Loads keywords from a JSON file
-pub fn load_keywords_from_file(file_path: &str) -> Result<(), String> {
-    let content = fs::read_to_string(file_path)
-        .map_err(|err| format!("Failed to read keywords file: {}", err))?;
+// Helper function to register keywords internally
+fn register_keyword_internal(
+    registry: &mut HashMap<String, Keyword>,
+    original_name: &str,
+    keyword_type: KeywordType,
+    description: &str,
+    aliases: &[&str],
+) {
+    let keyword = Keyword {
+        original_name: original_name.to_string(),
+        keyword_type,
+        description: description.to_string(),
+    };
 
-    load_keywords_from_json(&content)
-}
+    // Add the canonical name
+    registry.insert(original_name.to_string(), keyword.clone());
 
-/// Loads default keywords from the embedded JSON
-pub fn load_default_keywords() -> Result<(), String> {
-    let content = include_str!("keywords.json");
-    load_keywords_from_json(content)
-}
-
-/// Parse JSON and build the keywords map
-fn load_keywords_from_json(json_content: &str) -> Result<(), String> {
-    let config: KeywordConfig = serde_json::from_str(json_content)
-        .map_err(|err| format!("Failed to parse keywords JSON: {}", err))?;
-
-    let mut keywords_map = KEYWORDS_MAP.write().unwrap();
-    keywords_map.clear();
-
-    for keyword in config.keywords {
-        for alias in &keyword.aliases {
-            if alias != &keyword.original_name {
-                keywords_map.insert(alias.clone(), keyword.original_name.clone());
-            }
+    // Add all aliases
+    for alias in aliases {
+        if *alias != original_name {
+            registry.insert(alias.to_string(), keyword.clone());
         }
+    }
+}
+
+// Public API
+
+/// Resolve an alias to its canonical keyword
+pub fn resolve_keyword(alias: &str) -> Option<Keyword> {
+    KEYWORD_REGISTRY.read().unwrap().get(alias).cloned()
+}
+
+/// Get the canonical name of a function alias
+pub fn resolve_function_name(alias: &str) -> String {
+    match resolve_keyword(alias) {
+        Some(keyword) if keyword.keyword_type == KeywordType::Function => keyword.original_name,
+        _ => alias.to_string(),
+    }
+}
+
+/// Get the canonical name of a control keyword
+pub fn resolve_control_keyword(alias: &str) -> String {
+    match resolve_keyword(alias) {
+        Some(keyword) if keyword.keyword_type == KeywordType::Control => keyword.original_name,
+        _ => alias.to_string(),
+    }
+}
+
+/// Register a new keyword alias
+#[allow(dead_code)]
+pub fn register_keyword(
+    original_name: &str,
+    keyword_type: KeywordType,
+    description: &str,
+    aliases: &[&str],
+) -> Result<(), String> {
+    let mut registry = KEYWORD_REGISTRY.write().unwrap();
+
+    let keyword = Keyword {
+        original_name: original_name.to_string(),
+        keyword_type,
+        description: description.to_string(),
+    };
+
+    for alias in aliases {
+        registry.insert(alias.to_string(), keyword.clone());
     }
 
     Ok(())
-}
-
-/// Resolve control keywords - maps aliases to original names
-pub fn resolve_control_keyword(keyword: &str) -> String {
-    let keywords_map = KEYWORDS_MAP.read().unwrap();
-    match keywords_map.get(keyword) {
-        Some(original) => original.clone(),
-        None => keyword.to_string(), // If it's not an alias, return as is
-    }
-}
-
-/// Resolve function name - maps aliases to original names
-pub fn resolve_function_name(name: &str) -> String {
-    let keywords_map = KEYWORDS_MAP.read().unwrap();
-    match keywords_map.get(name) {
-        Some(original) => original.clone(),
-        None => name.to_string(), // If it's not an alias, return as is
-    }
-}
-
-/// Get all aliases for a given original keyword
-pub fn get_aliases_for(original: &str) -> Vec<String> {
-    let mut result = Vec::new();
-    let keywords_map = KEYWORDS_MAP.read().unwrap();
-    for (alias, orig) in keywords_map.iter() {
-        if orig == original {
-            result.push(alias.clone());
-        }
-    }
-    result
-}
-
-/// Preprocess source code to replace aliases with original keywords
-pub fn preprocess_source(source: &str) -> String {
-    // Get a read lock on the keywords map
-    let mut result = String::from(source);
-
-    // Check if map is empty and load defaults if needed
-    {
-        let keywords_map = KEYWORDS_MAP.read().unwrap();
-        if keywords_map.is_empty() {
-            // Drop the lock before calling load_default_keywords
-            drop(keywords_map);
-            let _ = load_default_keywords();
-        }
-    }
-
-    // Get a new read lock for processing
-    let keywords_map = KEYWORDS_MAP.read().unwrap();
-
-    // Replace all aliases with their original keywords
-    for (alias, original) in keywords_map.iter() {
-        // Add word boundary checks to avoid replacing substrings
-        let pattern = format!(r"\b{}\b", regex::escape(alias));
-        let re = regex::Regex::new(&pattern).unwrap();
-        result = re.replace_all(&result, original).to_string();
-    }
-
-    result
-}
-
-/// Check if a word is a recognized keyword or alias
-pub fn is_keyword_or_alias(word: &str) -> bool {
-    let keywords_map = KEYWORDS_MAP.read().unwrap();
-    keywords_map.contains_key(word) || keywords_map.values().any(|orig| orig == word)
 }
