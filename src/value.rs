@@ -8,6 +8,7 @@ pub enum Value {
 }
 
 impl Value {
+    #[allow(dead_code)]
     pub fn type_name(&self) -> &'static str {
         match self {
             Value::Number(_) => "number",

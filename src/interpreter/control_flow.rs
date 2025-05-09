@@ -3,7 +3,6 @@ use pest::iterators::Pairs;
 use crate::diagnostics::TungError;
 use crate::interpreter::expression::evaluate_expression;
 use crate::interpreter::Interpreter;
-use crate::keywords::resolve_control_keyword;
 use crate::parser::Rule;
 use crate::value::Value;
 
