@@ -1,67 +1,84 @@
 use pest::iterators::Pairs;
+use std::io::{self, Write};
 
-use crate::diagnostics::span_to_source_span;
-use crate::interpreter::{Interpreter, InterpreterError};
+use crate::diagnostics::TungError;
+use crate::interpreter::expression::evaluate_expression;
+use crate::interpreter::Interpreter;
 use crate::keywords::resolve_function_name;
 use crate::parser::Rule;
+use crate::value::Value;
 
 impl Interpreter {
-    pub(super) fn handle_function_call(
-        &mut self,
-        mut pairs: Pairs<Rule>,
-    ) -> Result<(), InterpreterError> {
-        let id_pair = pairs.next();
-        let function_alias = match id_pair {
-            Some(ref id_pair) if id_pair.as_rule() == Rule::identifier => id_pair.as_str(),
+    pub(super) fn handle_function_call(&mut self, mut pairs: Pairs<Rule>) -> Result<(), TungError> {
+        // Get the function name
+        let function_name = match pairs.next() {
+            Some(id_pair) if id_pair.as_rule() == Rule::identifier => {
+                let name = id_pair.as_str().to_string();
+                // Resolve the function name using any aliases
+                resolve_function_name(&name)
+            }
             _ => {
-                let span = id_pair.as_ref().map(|p| span_to_source_span(p.as_span()));
-                return Err(InterpreterError::InvalidExpression(
-                    "Expected function name in function call".to_string(),
-                    span,
-                ));
+                return Err(TungError::InvalidExpression(
+                    "Expected function name".to_string(),
+                    None,
+                ))
             }
         };
 
-        // Resolve the standard function name from any alias
-        let function_name = resolve_function_name(function_alias);
-
-        // Standard function handlers - match on String by comparing with as_str()
-        match function_name.as_str() {
-            "print" => {
-                // Collect arguments, handling each result
-                let mut args = Vec::new();
-                for p in pairs {
+        // Get the arguments
+        let mut args = Vec::new();
+        match pairs.next() {
+            Some(args_pair) => {
+                // Process each argument
+                for p in args_pair.into_inner() {
                     if p.as_rule() == Rule::expression {
-                        args.push(self.evaluate_expression(p.into_inner())?);
+                        args.push(evaluate_expression(p.into_inner(), &self.variables)?);
                     }
                 }
-
-                // Print all arguments on the same line with spaces between them
-                if !args.is_empty() {
-                    let mut output = String::new();
-                    for (i, arg) in args.iter().enumerate() {
-                        if i > 0 {
-                            output.push(' ');
-                        }
-                        output.push_str(&arg.to_string());
-                    }
-                    println!("{}", output);
-                } else {
-                    println!(); // Print empty line if no arguments
-                }
-                Ok(())
             }
-            // Add more function implementations here
-            _ => {
-                let span = id_pair.as_ref().map(|p| span_to_source_span(p.as_span()));
-                Err(InterpreterError::InvalidExpression(
-                    format!(
-                        "Unknown function: '{}'. Available functions: print",
-                        function_alias
-                    ),
-                    span,
+            None => {
+                return Err(TungError::InvalidExpression(
+                    "Expected arguments list".to_string(),
+                    None,
                 ))
             }
         }
+
+        // Handle built-in functions
+        match function_name.as_str() {
+            "print" => {
+                // Print function: print all arguments to stdout
+                for arg in args {
+                    print!("{} ", arg);
+                }
+                println!();
+                io::stdout().flush().unwrap();
+            }
+            "input" => {
+                // Input function: prompt for input
+                if !args.is_empty() {
+                    // Print the prompt if provided
+                    print!("{}", args[0]);
+                    io::stdout().flush().unwrap();
+                }
+
+                // Read input from stdin
+                let mut input = String::new();
+                io::stdin().read_line(&mut input).unwrap();
+                input = input.trim().to_string();
+
+                // Store the result in a special variable
+                self.variables
+                    .insert("result".to_string(), Value::String(input));
+            }
+            _ => {
+                return Err(TungError::InvalidStatement(
+                    format!("Unknown function: {}", function_name),
+                    None,
+                ))
+            }
+        }
+
+        Ok(())
     }
 }

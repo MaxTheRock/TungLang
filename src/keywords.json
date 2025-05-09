@@ -19,10 +19,22 @@
       "aliases": ["if", "la_vaca"]
     },
     {
+      "original_name": "else",
+      "keyword_type": "Control",
+      "description": "Else block for if statements",
+      "aliases": ["else", "altra_vaca"]
+    },
+    {
       "original_name": "endif",
       "keyword_type": "Control",
       "description": "End of if block",
       "aliases": ["endif", "fine_vaca"]
+    },
+    {
+      "original_name": "var",
+      "keyword_type": "Declaration",
+      "description": "Declare a variable",
+      "aliases": ["var", "capu"]
     }
   ]
 }

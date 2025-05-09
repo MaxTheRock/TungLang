@@ -24,6 +24,11 @@ fn main() -> Result<()> {
         process::exit(1);
     }
 
+    // Load default keywords first
+    if let Err(err) = keywords::load_default_keywords() {
+        eprintln!("Warning: Failed to load default keywords: {}", err);
+    }
+
     // Load custom keywords config if provided
     if args.len() >= 3 {
         let keyword_config = &args[2];
@@ -44,14 +49,21 @@ fn main() -> Result<()> {
             miette::miette!(code = "tung::file_error", "Failed to read file: {}", err)
         })?;
 
+    // Preprocess the source to replace aliases with original keywords
+    let preprocessed_source = keywords::preprocess_source(&source);
+
+    // Debug output to see the preprocessed source
+    println!("Original source:\n{}", source);
+    println!("Preprocessed source:\n{}", preprocessed_source);
+
     // Parse the file
-    let pairs = TungParser::parse(Rule::file, &source).map_err(|err| {
+    let pairs = TungParser::parse(Rule::file, &preprocessed_source).map_err(|err| {
         let message = format!("Parse error: {}", err);
         TungError::ParserError(message, None)
     })?;
 
     // Create an interpreter with the source for better error reporting
-    // Clone source for the interpreter to avoid ownership issues
+    // Use the original source, not preprocessed, for error reporting
     let mut interpreter = Interpreter::with_source(source.clone());
 
     // Interpret the parsed file

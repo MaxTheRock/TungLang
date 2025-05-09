@@ -1,18 +1,16 @@
 # This is a comment
 
 # Variable assignments with different types
-var x = 42
-var name = "TungLang"
-var is_active = true
+capu x = 42
+capu name = "TungLang"
+capu is_active = true
 
 # Arithmetic operations
-var sum = x + 8
-var difference = x - 2
-var product = x * 2
-var quotient = x / 7
-
-# String concatenation
-var greeting = "Hello, " + name
+capu sum = x + 8
+capu difference = x - 2
+capu product = x * 2
+capu quotient = x / 4
+capu greeting = "Hello, " + name
 
 # Print values
 tung("=== Basic Values ===")
@@ -54,4 +52,4 @@ la_vaca is_active:
     fine_vaca
 fine_vaca
 
-print("DONE!!")
+tung("DONE!!")

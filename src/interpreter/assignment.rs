@@ -1,109 +1,81 @@
 use pest::iterators::Pairs;
 
-use crate::diagnostics::span_to_source_span;
-use crate::interpreter::{Interpreter, InterpreterError};
+use crate::diagnostics::TungError;
+use crate::interpreter::expression::evaluate_expression;
+use crate::interpreter::Interpreter;
 use crate::parser::Rule;
 
 impl Interpreter {
     pub(super) fn handle_variable_declaration(
         &mut self,
         mut pairs: Pairs<Rule>,
-    ) -> Result<(), InterpreterError> {
-        let id_pair = pairs.next();
-        let variable = match id_pair {
-            Some(ref id_pair) if id_pair.as_rule() == Rule::identifier => {
-                // Trim whitespace from the variable name
-                id_pair.as_str().trim().to_string()
+    ) -> Result<(), TungError> {
+        // Skip the var_keyword rule
+        pairs.next();
+
+        // Get the identifier
+        let identifier = match pairs.next() {
+            Some(id_pair) if id_pair.as_rule() == Rule::identifier => id_pair.as_str().to_string(),
+            _ => {
+                return Err(TungError::InvalidExpression(
+                    "Expected identifier in declaration".to_string(),
+                    None,
+                ))
+            }
+        };
+
+        // Expect the next token to be an expression
+        let expression = match pairs.next() {
+            Some(expr_pair) if expr_pair.as_rule() == Rule::expression => {
+                evaluate_expression(expr_pair.into_inner(), &self.variables)?
             }
             _ => {
-                let span = id_pair.as_ref().map(|p| span_to_source_span(p.as_span()));
-                return Err(InterpreterError::InvalidExpression(
-                    "Expected identifier in declaration".to_string(),
-                    span,
-                ));
-            }
-        };
-
-        // Check if variable already exists
-        if self.variables.contains_key(&variable) {
-            let span = id_pair.as_ref().map(|p| span_to_source_span(p.as_span()));
-            return Err(InterpreterError::VariableAlreadyDefined(
-                format!("Variable '{}' has already been defined", variable),
-                span,
-            ));
-        }
-
-        let value = match pairs.next() {
-            Some(val_pair) if val_pair.as_rule() == Rule::expression => {
-                self.evaluate_expression(val_pair.into_inner())?
-            }
-            Some(val_pair) => {
-                let span = span_to_source_span(val_pair.as_span());
-                return Err(InterpreterError::InvalidExpression(
-                    "Expected expression in variable declaration".to_string(),
-                    Some(span),
-                ));
-            }
-            None => {
-                return Err(InterpreterError::InvalidExpression(
-                    "Expected expression in variable declaration".to_string(),
+                return Err(TungError::InvalidExpression(
+                    "Expected expression after identifier in declaration".to_string(),
                     None,
-                ));
+                ))
             }
         };
 
-        self.variables.insert(variable, value);
+        // Store the variable in our environment
+        self.variables.insert(identifier, expression);
+
         Ok(())
     }
 
-    pub(super) fn handle_assignment(
-        &mut self,
-        mut pairs: Pairs<Rule>,
-    ) -> Result<(), InterpreterError> {
-        let id_pair = pairs.next();
-        let variable = match id_pair {
-            Some(ref id_pair) if id_pair.as_rule() == Rule::identifier => {
-                // Trim whitespace from the variable name
-                id_pair.as_str().trim().to_string()
+    pub(super) fn handle_assignment(&mut self, mut pairs: Pairs<Rule>) -> Result<(), TungError> {
+        // Get the identifier
+        let identifier = match pairs.next() {
+            Some(id_pair) if id_pair.as_rule() == Rule::identifier => id_pair.as_str().to_string(),
+            _ => {
+                return Err(TungError::InvalidExpression(
+                    "Expected identifier in assignment".to_string(),
+                    None,
+                ))
+            }
+        };
+
+        // Expect the next token to be an expression
+        let expression = match pairs.next() {
+            Some(expr_pair) if expr_pair.as_rule() == Rule::expression => {
+                evaluate_expression(expr_pair.into_inner(), &self.variables)?
             }
             _ => {
-                let span = id_pair.as_ref().map(|p| span_to_source_span(p.as_span()));
-                return Err(InterpreterError::InvalidExpression(
-                    "Expected identifier in assignment".to_string(),
-                    span,
-                ));
+                return Err(TungError::InvalidExpression(
+                    "Expected expression after identifier in assignment".to_string(),
+                    None,
+                ))
             }
         };
 
         // Check if variable exists
-        if !self.variables.contains_key(&variable) {
-            let span = id_pair.as_ref().map(|p| span_to_source_span(p.as_span()));
-            return Err(InterpreterError::VariableNotFound(
-                format!("Cannot assign to undeclared variable '{}'. Use 'var' keyword to declare variables.", variable),
-                span,
-            ));
+        if !self.variables.contains_key(&identifier) {
+            return Err(TungError::VariableNotFound(identifier, None));
         }
 
-        let value = match pairs.next() {
-            Some(val_pair) if val_pair.as_rule() == Rule::expression => {
-                self.evaluate_expression(val_pair.into_inner())?
-            }
-            Some(val_pair) => {
-                let span = span_to_source_span(val_pair.as_span());
-                return Err(InterpreterError::InvalidExpression(
-                    "Expected expression in assignment".to_string(),
-                    Some(span),
-                ));
-            }
-            None => {
-                return Err(InterpreterError::InvalidExpression(
-                    "Expected expression in assignment".to_string(),
-                    None,
-                ));
-            }
-        };
+        // Update the variable in our environment
+        self.variables.insert(identifier, expression);
 
-        self.variables.insert(variable, value);
         Ok(())
     }
 }

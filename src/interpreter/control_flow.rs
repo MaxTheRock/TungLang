@@ -1,48 +1,60 @@
 use pest::iterators::Pairs;
 
-use crate::interpreter::{Interpreter, InterpreterError};
+use crate::diagnostics::TungError;
+use crate::interpreter::expression::evaluate_expression;
+use crate::interpreter::Interpreter;
 use crate::keywords::resolve_control_keyword;
 use crate::parser::Rule;
 use crate::value::Value;
 
 impl Interpreter {
-    pub(super) fn handle_if_statement(
-        &mut self,
-        mut pairs: Pairs<Rule>,
-    ) -> Result<(), InterpreterError> {
-        // Check the control keyword used (if or an alias)
-        let control_word = match pairs.next() {
-            Some(word) => resolve_control_keyword(word.as_str()),
-            None => "if".to_string(), // Default to 'if' if missing
-        };
+    pub(super) fn handle_if_statement(&mut self, mut pairs: Pairs<Rule>) -> Result<(), TungError> {
+        // Get the control keyword (already processed in preprocessing)
+        let _ = pairs.next();
 
-        // First expression should be the condition
+        // Get the condition expression
         let condition = match pairs.next() {
-            Some(expr) => self.evaluate_expression(expr.into_inner())?,
+            Some(expr) => evaluate_expression(expr.into_inner(), &self.variables)?,
             None => {
-                return Err(InterpreterError::InvalidExpression(
-                    format!(
-                        "Missing condition in {} statement. Use: {} (condition):",
-                        control_word, control_word
-                    ),
+                return Err(TungError::InvalidExpression(
+                    "Expected condition in if statement".to_string(),
                     None,
-                ));
+                ))
             }
         };
 
-        // Check if condition is true
-        let condition_true = match condition {
-            Value::Number(n) => n != 0,
-            Value::String(s) => !s.is_empty(),
-            Value::Boolean(b) => b,
+        // Skip the colon
+        pairs.next();
+
+        // Get the statements to execute if condition is true
+        let statements = match pairs.next() {
+            Some(stmts) => stmts,
+            None => {
+                return Err(TungError::InvalidStatement(
+                    "Expected statements in if block".to_string(),
+                    None,
+                ))
+            }
         };
 
-        // If condition is true, execute the statements inside the block
-        if condition_true {
-            for stmt in pairs {
-                if stmt.as_rule() == Rule::statement {
-                    self.handle_statement(stmt.into_inner())?;
+        // Check if the condition is true
+        match condition {
+            Value::Boolean(true) => {
+                // Execute the statements in the if block
+                for stmt in statements.into_inner() {
+                    if stmt.as_rule() == Rule::statement {
+                        self.handle_statement(stmt.into_inner())?;
+                    }
                 }
+            }
+            Value::Boolean(false) => {
+                // Condition is false, skip the if block
+            }
+            _ => {
+                return Err(TungError::TypeMismatch(
+                    "If condition must evaluate to a boolean".to_string(),
+                    None,
+                ))
             }
         }
 

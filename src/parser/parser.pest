@@ -8,8 +8,11 @@ COMMENT = _{ "#" ~ (!NEWLINE ~ ANY)* ~ (NEWLINE | EOI) }
 // A statement can be a declaration, assignment, function call, or control structure.
 statement = { variable_declaration | assignment | function_call | if_statement }
 
-// Variable declaration with var keyword or its alias
-variable_declaration = { ("var" | "babbo") ~ identifier ~ "=" ~ expression }
+// Variable declaration with var keyword or its aliases
+variable_declaration = { var_keyword ~ identifier ~ "=" ~ expression }
+
+// Var keyword and its aliases
+var_keyword = { "var" }
 
 // Assignment to existing variable with expression as value
 assignment = { identifier ~ "=" ~ expression }
@@ -58,8 +61,8 @@ number = { ASCII_DIGIT+ }
 string_literal = { "\"" ~ string_content ~ "\"" }
 string_content = { (!("\"") ~ ANY)* }
 
-// Boolean values with aliases
-boolean = { ("true" | "vero") | ("false" | "falso") }
+// Boolean values
+boolean = { "true" | "false" }
 
 // Silent whitespace
 WHITESPACE = _{ " " | "\t" }
