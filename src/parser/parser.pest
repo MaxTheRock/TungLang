@@ -16,8 +16,8 @@ function_call = { identifier ~ "(" ~ (expression ~ ("," ~ expression)*)? ~ ")" }
 
 // If statement - simplified
 if_statement = { 
-    "if" ~ ("(" ~ expression ~ ")" | expression) ~ ":" ~ NEWLINE* ~
-    statement* ~
+    "if" ~ ("(" ~ expression ~ ")" | expression) ~ ":" ~ NEWLINE+ ~
+    statement* ~ NEWLINE* ~
     "endif"
 }
 
@@ -31,7 +31,7 @@ comparison = { term ~ comparison_op ~ term }
 term = { factor ~ (operator ~ factor)* }
 
 // Factor
-factor = { identifier | value | "(" ~ expression ~ ")" }
+factor = { value | identifier | "(" ~ expression ~ ")" }
 
 // Arithmetic operators
 operator = { "+" | "-" | "*" | "/" }

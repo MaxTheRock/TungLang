@@ -13,12 +13,14 @@ use crate::value::Value;
 // Use our new error type from diagnostics
 pub type InterpreterError = TungError;
 
+#[allow(dead_code)]
 pub struct Interpreter {
     variables: HashMap<String, Value>,
     source: Option<String>, // Store the source code for error reporting
 }
 
 impl Interpreter {
+    #[allow(dead_code)]
     pub fn new() -> Self {
         Interpreter {
             variables: HashMap::new(),

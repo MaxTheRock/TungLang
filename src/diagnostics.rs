@@ -53,8 +53,4 @@ pub enum TungError {
     #[error("Parser error: {0}")]
     #[diagnostic(code(tung::parser_error))]
     ParserError(String, #[label("Parsing failed here")] Option<SourceSpan>),
-
-    #[error("{0}")]
-    #[diagnostic(code(tung::generic_error))]
-    Other(String),
 }
