@@ -8,7 +8,7 @@ TungLang is a fun programming language inspired by Italian Brainrot, with syntax
 
 Variables must be declared with the `var` keyword before use:
 
-```
+```tung
 var x = 10
 ```
 
@@ -16,7 +16,7 @@ var x = 10
 
 Functions are defined using the `fun` keyword. TungLang supports both standard function definitions and Italian-themed alternatives:
 
-```
+```tung
 fun add(a, b) {
     return a + b
 }
@@ -30,7 +30,7 @@ tung stampa(messaggio) {
 
 Control structures in TungLang include `if`, `else`, `while`, and `for`, with their Italian-inspired counterparts:
 
-```
+```tung
 if (x > 0) {
     stampa("Positivo")
 } saturno (x < 0) {
