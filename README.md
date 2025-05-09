@@ -1,6 +1,52 @@
 # TungLang
 
-Italian Brainrot language similar to python
+TungLang is a fun programming language inspired by Italian Brainrot, with syntax similar to Python. It features a dynamic keyword system that allows for both standard programming keywords and their Italian-inspired alternatives.
+
+## Basic Syntax
+
+### Variables
+
+Variables must be declared with the `var` keyword before use:
+
+```
+var x = 10
+```
+
+### Functions
+
+Functions are defined using the `fun` keyword. TungLang supports both standard function definitions and Italian-themed alternatives:
+
+```
+fun add(a, b) {
+    return a + b
+}
+
+tung stampa(messaggio) {
+    print(messaggio)
+}
+```
+
+### Control Structures
+
+Control structures in TungLang include `if`, `else`, `while`, and `for`, with their Italian-inspired counterparts:
+
+```
+if (x > 0) {
+    stampa("Positivo")
+} saturno (x < 0) {
+    stampa("Negativo")
+} saturnita {
+    stampa("Zero")
+}
+
+bombadillo (x < 10) {
+    x = x + 1
+}
+
+tralala i in range(5) {
+    stampa(i)
+}
+```
 
 ## Keyword Aliases
 
