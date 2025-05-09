@@ -83,6 +83,116 @@ lazy_static! {
             &["endif", "fine_vaca"]
         );
 
+        // === DECLARATION & ASSIGNMENT KEYWORDS ===
+        // Variable declaration
+        register_keyword_internal(
+            &mut registry,
+            "var",
+            KeywordType::Statement,
+            "Variable declaration",
+            &["var", "babbo"]
+        );
+
+        // === OPERATORS ===
+        // Mathematical operators
+        register_keyword_internal(
+            &mut registry,
+            "+",
+            KeywordType::Operator,
+            "Addition operator",
+            &["+", "piu"]
+        );
+
+        register_keyword_internal(
+            &mut registry,
+            "-",
+            KeywordType::Operator,
+            "Subtraction operator",
+            &["-", "meno"]
+        );
+
+        register_keyword_internal(
+            &mut registry,
+            "*",
+            KeywordType::Operator,
+            "Multiplication operator",
+            &["*", "per"]
+        );
+
+        register_keyword_internal(
+            &mut registry,
+            "/",
+            KeywordType::Operator,
+            "Division operator",
+            &["/", "diviso"]
+        );
+
+        // Comparison operators
+        register_keyword_internal(
+            &mut registry,
+            "==",
+            KeywordType::Operator,
+            "Equal to",
+            &["==", "uguale"]
+        );
+
+        register_keyword_internal(
+            &mut registry,
+            "!=",
+            KeywordType::Operator,
+            "Not equal to",
+            &["!=", "diverso"]
+        );
+
+        register_keyword_internal(
+            &mut registry,
+            ">",
+            KeywordType::Operator,
+            "Greater than",
+            &[">", "maggiore"]
+        );
+
+        register_keyword_internal(
+            &mut registry,
+            "<",
+            KeywordType::Operator,
+            "Less than",
+            &["<", "minore"]
+        );
+
+        register_keyword_internal(
+            &mut registry,
+            ">=",
+            KeywordType::Operator,
+            "Greater than or equal to",
+            &[">=", "maggiore_uguale"]
+        );
+
+        register_keyword_internal(
+            &mut registry,
+            "<=",
+            KeywordType::Operator,
+            "Less than or equal to",
+            &["<=", "minore_uguale"]
+        );
+
+        // === BOOLEAN VALUES ===
+        register_keyword_internal(
+            &mut registry,
+            "true",
+            KeywordType::Statement,
+            "Boolean true value",
+            &["true", "vero"]
+        );
+
+        register_keyword_internal(
+            &mut registry,
+            "false",
+            KeywordType::Statement,
+            "Boolean false value",
+            &["false", "falso"]
+        );
+
         RwLock::new(registry)
     };
 }
@@ -131,6 +241,22 @@ pub fn resolve_function_name(alias: &str) -> String {
 pub fn resolve_control_keyword(alias: &str) -> String {
     match resolve_keyword(alias) {
         Some(keyword) if keyword.keyword_type == KeywordType::Control => keyword.original_name,
+        _ => alias.to_string(),
+    }
+}
+
+/// Get the standard operator name from any alias
+pub fn resolve_operator(alias: &str) -> String {
+    match resolve_keyword(alias) {
+        Some(keyword) if keyword.keyword_type == KeywordType::Operator => keyword.original_name,
+        _ => alias.to_string(),
+    }
+}
+
+/// Get the standard statement keyword from any alias
+pub fn resolve_statement_keyword(alias: &str) -> String {
+    match resolve_keyword(alias) {
+        Some(keyword) if keyword.keyword_type == KeywordType::Statement => keyword.original_name,
         _ => alias.to_string(),
     }
 }
