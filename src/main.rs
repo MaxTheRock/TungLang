@@ -6,6 +6,7 @@ use std::process;
 
 mod diagnostics;
 mod interpreter;
+mod keywords;
 mod parser;
 mod value;
 
@@ -19,12 +20,23 @@ fn main() -> Result<()> {
 
     // Check if a file path was provided
     if args.len() < 2 {
-        eprintln!("Usage: {} <file_path>", args[0]);
+        eprintln!("Usage: {} <file_path> [keywords_config]", args[0]);
         process::exit(1);
+    }
+
+    // Load custom keywords config if provided
+    if args.len() >= 3 {
+        let keyword_config = &args[2];
+        if let Err(err) = keywords::load_keywords_from_file(keyword_config) {
+            eprintln!("Warning: Failed to load keywords config: {}", err);
+        } else {
+            println!("Loaded custom keywords from {}", keyword_config);
+        }
     }
 
     // Read the file
     let file_path = &args[1];
+    println!("Running file: {}", file_path);
 
     let source = fs::read_to_string(file_path)
         .into_diagnostic()

@@ -15,41 +15,43 @@ var quotient = x / 7
 var greeting = "Hello, " + name
 
 # Print values
-print("=== Basic Values ===")
-print("x:", x)
-print("name:", name)
-print("is_active:", is_active)
+tung("=== Basic Values ===")
+tung("x:", x)
+tung("name:", name)
+tung("is_active:", is_active)
 
-print("=== Arithmetic Operations ===")
-print("sum:", sum)
-print("difference:", difference)
-print("product:", product)
-print("quotient:", quotient)
-print("string:", greeting)
+tung("=== Arithmetic Operations ===")
+tung("sum:", sum)
+tung("difference:", difference)
+tung("product:", product)
+tung("quotient:", quotient)
+tung("string:", greeting)
 
 # Comparison operators
-print("=== Comparisons ===")
-print("x == 42:", x == 42)
-print("x != 0:", x != 0)
-print("x < 50:", x < 50)
-print("x > 30:", x > 30)
-print("x <= 42:", x <= 42)
-print("x >= 42:", x >= 42)
+tung("=== Comparisons ===")
+tung("x == 42:", x == 42)
+tung("x != 0:", x != 0)
+tung("x < 50:", x < 50)
+tung("x > 30:", x > 30)
+tung("x <= 42:", x <= 42)
+tung("x >= 42:", x >= 42)
 
-# If statement testing
-print("=== If Statements ===")
-if x > 40:
-    print("x is greater than 40")
-endif
+# If statement testing using la_vaca alias
+tung("=== If Statements ===")
+la_vaca x > 40:
+    tung("x is greater than 40")
+fine_vaca
 
-if x < 10:
-    print("This won't be printed")
-endif
+la_vaca x < 10:
+    tung("This won't be printed")
+fine_vaca
 
-# Nested if statements
-if is_active:
-    print("Testing nested if:")
-    if x == 42:
-        print("x is exactly 42")
-    endif
-endif
+# Nested if statements using aliases
+la_vaca is_active:
+    tung("Testing nested if:")
+    la_vaca x == 42:
+        tung("x is exactly 42")
+    fine_vaca
+fine_vaca
+
+print("DONE!!")

@@ -1,6 +1,7 @@
 use pest::iterators::Pairs;
 
 use crate::interpreter::{Interpreter, InterpreterError};
+use crate::keywords::resolve_control_keyword;
 use crate::parser::Rule;
 use crate::value::Value;
 
@@ -9,16 +10,21 @@ impl Interpreter {
         &mut self,
         mut pairs: Pairs<Rule>,
     ) -> Result<(), InterpreterError> {
-        // First pair should be the condition expression
+        // Check the control keyword used (if or an alias)
+        let control_word = match pairs.next() {
+            Some(word) => resolve_control_keyword(word.as_str()),
+            None => "if".to_string(), // Default to 'if' if missing
+        };
+
+        // First expression should be the condition
         let condition = match pairs.next() {
-            Some(expr) => {
-                // Don't need to use the span here since the error will be reported
-                // from inside evaluate_expression if needed
-                self.evaluate_expression(expr.into_inner())?
-            }
+            Some(expr) => self.evaluate_expression(expr.into_inner())?,
             None => {
                 return Err(InterpreterError::InvalidExpression(
-                    "Missing condition in if statement. Use: if (condition):".to_string(),
+                    format!(
+                        "Missing condition in {} statement. Use: {} (condition):",
+                        control_word, control_word
+                    ),
                     None,
                 ));
             }

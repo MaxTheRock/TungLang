@@ -1,0 +1,28 @@
+{
+  "keywords": [
+    {
+      "original_name": "print",
+      "keyword_type": "Function",
+      "description": "Print values to the console",
+      "aliases": ["print", "tung"]
+    },
+    {
+      "original_name": "input",
+      "keyword_type": "Function", 
+      "description": "Read user input from the console",
+      "aliases": ["input", "sahur"]
+    },
+    {
+      "original_name": "if",
+      "keyword_type": "Control",
+      "description": "Conditional if statement",
+      "aliases": ["if", "la_vaca"]
+    },
+    {
+      "original_name": "endif",
+      "keyword_type": "Control",
+      "description": "End of if block",
+      "aliases": ["endif", "fine_vaca"]
+    }
+  ]
+}
