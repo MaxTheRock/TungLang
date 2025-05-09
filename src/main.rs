@@ -25,7 +25,6 @@ fn main() -> Result<()> {
 
     // Read the file
     let file_path = &args[1];
-    println!("Running file: {}", file_path);
 
     let source = fs::read_to_string(file_path)
         .into_diagnostic()

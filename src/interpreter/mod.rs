@@ -72,6 +72,10 @@ impl Interpreter {
     fn handle_statement(&mut self, mut pairs: Pairs<Rule>) -> Result<(), InterpreterError> {
         if let Some(pair) = pairs.next() {
             match pair.as_rule() {
+                Rule::variable_declaration => {
+                    self.handle_variable_declaration(pair.into_inner())?;
+                    Ok(())
+                }
                 Rule::assignment => {
                     self.handle_assignment(pair.into_inner())?;
                     Ok(())

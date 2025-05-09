@@ -53,4 +53,11 @@ pub enum TungError {
     #[error("Parser error: {0}")]
     #[diagnostic(code(tung::parser_error))]
     ParserError(String, #[label("Parsing failed here")] Option<SourceSpan>),
+
+    #[error("Variable already defined: {0}")]
+    #[diagnostic(code(tung::variable_already_defined))]
+    VariableAlreadyDefined(
+        String,
+        #[label("Variable redefined here")] Option<SourceSpan>,
+    ),
 }

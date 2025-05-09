@@ -1,5 +1,55 @@
-x = 5
+# This is a comment
 
-if x == 5:
-    print("3")
+# Variable assignments with different types
+var x = 42
+var name = "TungLang"
+var is_active = true
+
+# Arithmetic operations
+var sum = x + 8
+var difference = x - 2
+var product = x * 2
+var quotient = x / 7
+
+# String concatenation
+var greeting = "Hello, " + name
+
+# Print values
+print("=== Basic Values ===")
+print("x:", x)
+print("name:", name)
+print("is_active:", is_active)
+
+print("=== Arithmetic Operations ===")
+print("sum:", sum)
+print("difference:", difference)
+print("product:", product)
+print("quotient:", quotient)
+print("string:", greeting)
+
+# Comparison operators
+print("=== Comparisons ===")
+print("x == 42:", x == 42)
+print("x != 0:", x != 0)
+print("x < 50:", x < 50)
+print("x > 30:", x > 30)
+print("x <= 42:", x <= 42)
+print("x >= 42:", x >= 42)
+
+# If statement testing
+print("=== If Statements ===")
+if x > 40:
+    print("x is greater than 40")
+endif
+
+if x < 10:
+    print("This won't be printed")
+endif
+
+# Nested if statements
+if is_active:
+    print("Testing nested if:")
+    if x == 42:
+        print("x is exactly 42")
+    endif
 endif

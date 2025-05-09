@@ -1,30 +1,33 @@
 // The main rule that defines a `.tung` file.
 // A file consists of zero or more statements, each optionally followed by a newline, and ends with EOI (End of Input).
-file = { SOI ~ (statement ~ NEWLINE*)* ~ EOI }
+file = { SOI ~ NEWLINE* ~ (statement ~ NEWLINE*)* ~ EOI }
 
 // Comments are allowed anywhere and should be skipped
 COMMENT = _{ "#" ~ (!NEWLINE ~ ANY)* ~ (NEWLINE | EOI) }
 
-// A statement can be an assignment, function call, or control structure.
-statement = { assignment | function_call | if_statement }
+// A statement can be a declaration, assignment, function call, or control structure.
+statement = { variable_declaration | assignment | function_call | if_statement }
 
-// Assignment with expression as value
+// Variable declaration with var keyword
+variable_declaration = { "var" ~ identifier ~ "=" ~ expression }
+
+// Assignment to existing variable with expression as value
 assignment = { identifier ~ "=" ~ expression }
 
 // Function call with optional arguments
 function_call = { identifier ~ "(" ~ (expression ~ ("," ~ expression)*)? ~ ")" }
 
-// If statement - simplified
+// If statement - improved to handle newlines between statements
 if_statement = { 
     "if" ~ ("(" ~ expression ~ ")" | expression) ~ ":" ~ NEWLINE+ ~
-    statement* ~ NEWLINE* ~
+    (statement ~ NEWLINE*)* ~
     "endif"
 }
 
 // Expression
 expression = { comparison | term }
 
-// Comparison expression
+// Comparison expression - revised to ensure proper parsing
 comparison = { term ~ comparison_op ~ term }
 
 // Term
@@ -35,11 +38,11 @@ factor = { value | identifier | "(" ~ expression ~ ")" }
 
 // Arithmetic operators
 operator = { "+" | "-" | "*" | "/" }
-// Comparison operators
-comparison_op = { "==" | "!=" | "<" | ">" | "<=" | ">=" }
+// Fix the rule to make comparison operators distinct tokens
+comparison_op = @{ "==" | "!=" | "<=" | ">=" | "<" | ">" }
 
 // Identifiers
-identifier = @{ ASCII_ALPHANUMERIC+ }
+identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
 
 // Values
 value = { number | string_literal | boolean }
