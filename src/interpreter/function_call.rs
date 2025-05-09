@@ -31,9 +31,18 @@ impl Interpreter {
                 }
             }
 
-            // Print each argument
-            for arg in args {
-                println!("{}", arg);
+            // Print all arguments on the same line with spaces between them
+            if !args.is_empty() {
+                let mut output = String::new();
+                for (i, arg) in args.iter().enumerate() {
+                    if i > 0 {
+                        output.push(' ');
+                    }
+                    output.push_str(&arg.to_string());
+                }
+                println!("{}", output);
+            } else {
+                println!(); // Print empty line if no arguments
             }
             Ok(())
         } else {
