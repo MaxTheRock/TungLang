@@ -15,14 +15,14 @@ pub fn run_program(parsed: Pairs<Rule>) -> miette::Result<()> {
 fn execute_statement(pair: Pair<Rule>, variables: &mut HashMap<String, Value>) -> miette::Result<()> {
     match pair.as_rule() {
         Rule::variable_declaration => {
-            let mut inner = pair.into_inner();
-            let var_name = inner.next().unwrap().as_str().to_string();
-            let value = evaluate_expression(inner.next().unwrap(), variables);
+            let mut inner: pest::iterators::Pairs<Rule> = pair.into_inner();
+            let var_name: String = inner.next().unwrap().as_str().to_string();
+            let value: Value = evaluate_expression(inner.next().unwrap(), variables);
             variables.insert(var_name, value);
         }
         Rule::print_statement => {
-            let mut inner = pair.into_inner();
-            let value = evaluate_expression(inner.next().unwrap(), variables);
+            let mut inner: pest::iterators::Pairs<Rule> = pair.into_inner();
+            let value: Value = evaluate_expression(inner.next().unwrap(), variables);
             match value {
                 Value::String(s) => println!("{}", s),
                 Value::Number(n) => println!("{}", n),
@@ -48,30 +48,30 @@ fn is_truthy(value: Value) -> bool {
 }
 
 fn execute_if_statement(pair: Pair<Rule>, variables: &mut HashMap<String, Value>) -> miette::Result<()> {
-    let mut inner = pair.into_inner();
-    let condition = inner.next().unwrap();
-    let condition_met = is_truthy(evaluate_expression(condition, variables));
+    let mut inner: pest::iterators::Pairs<Rule> = pair.into_inner();
+    let condition: Pair<Rule> = inner.next().unwrap();
+    let condition_met: bool = is_truthy(evaluate_expression(condition, variables));
     if condition_met {
-        let block = inner.next().unwrap();
+        let block: Pair<Rule> = inner.next().unwrap();
         execute_block(block, variables)?;
         return Ok(());
     } else {
-        let mut found = false;
+        let mut found: bool = false;
         for elif_or_else in inner {
             match elif_or_else.as_rule() {
                 Rule::elif_block => {
-                    let mut elif_inner = elif_or_else.into_inner();
-                    let elif_condition = elif_inner.next().unwrap();
-                    let elif_met = is_truthy(evaluate_expression(elif_condition, variables));
+                    let mut elif_inner: pest::iterators::Pairs<Rule> = elif_or_else.into_inner();
+                    let elif_condition: Pair<Rule> = elif_inner.next().unwrap();
+                    let elif_met: bool = is_truthy(evaluate_expression(elif_condition, variables));
                     if elif_met {
-                        let block = elif_inner.next().unwrap();
+                        let block: Pair<Rule> = elif_inner.next().unwrap();
                         execute_block(block, variables)?;
                         found = true;
                         break;
                     }
                 }
                 Rule::else_block => {
-                    let block = elif_or_else.into_inner().next().unwrap();
+                    let block: Pair<Rule> = elif_or_else.into_inner().next().unwrap();
                     execute_block(block, variables)?;
                     found = true;
                     break;

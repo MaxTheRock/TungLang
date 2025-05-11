@@ -10,7 +10,7 @@ pub fn evaluate_expression(pair: Pair<Rule>, variables: &HashMap<String, Value>)
             let mut left: Value = evaluate_expression(inner.next().unwrap(), variables);
             while let Some(op_pair) = inner.next() {
                 let op_str: &str = op_pair.as_str();
-                if let Some(right_pair) = inner.next() {
+                if let Some(right_pair)= inner.next() {
                     let right: Value = evaluate_expression(right_pair, variables);
                     left = match (left, right, op_str) {
                         (Value::Number(l), Value::Number(r), "+") => Value::Number(l + r),
@@ -44,11 +44,10 @@ pub fn evaluate_expression(pair: Pair<Rule>, variables: &HashMap<String, Value>)
             let first: Pair<Rule> = inner.next().unwrap();
             match first.as_rule() {
                 Rule::string => {
-                    let raw = first.as_str();
-                    // Remove leading/trailing quotes if present
-                    let stripped = raw
+                    let raw: &str = first.as_str();
+                    let stripped: &str = raw
                         .strip_prefix('"')
-                        .and_then(|s| s.strip_suffix('"'))
+                        .and_then(|s: &str| s.strip_suffix('"'))
                         .unwrap_or(raw);
                     Value::String(stripped.to_string())
                 }

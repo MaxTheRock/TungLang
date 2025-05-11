@@ -19,11 +19,11 @@ pub struct Args {
 fn main() -> miette::Result<()> {
     let args: Args = Args::parse();
 
-    let path = std::path::Path::new(&args.file);
+    let path: &std::path::Path = std::path::Path::new(&args.file);
     if path
         .extension()
-        .and_then(|s| s.to_str())
-        .map(|s| s.eq_ignore_ascii_case("tung"))
+        .and_then(|s: &std::ffi::OsStr| s.to_str())
+        .map(|s: &str| s.eq_ignore_ascii_case("tung"))
         != Some(true)
     {
         return Err(miette::miette!("Error: Only .tung files are allowed."));
@@ -36,7 +36,7 @@ fn main() -> miette::Result<()> {
         }
     };
 
-    let parsed = match TungParser::parse(Rule::program, &program) {
+    let parsed: pest::iterators::Pairs<Rule> = match TungParser::parse(Rule::program, &program) {
         Ok(mut pairs) => pairs.next().unwrap().into_inner(),
         Err(e) => {
             return Err(miette::miette!("Error parsing program: {}", e));
