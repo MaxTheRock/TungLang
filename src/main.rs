@@ -1,14 +1,12 @@
 mod ast;
 mod eval;
+mod interpreter;
 mod value;
 
-use crate::ast::print_ast;
-use crate::eval::execute_program;
-use crate::value::Value;
+use crate::interpreter::run_program;
 use clap::Parser as ClapParser;
 use pest::Parser;
 use pest_derive::Parser;
-use std::collections::HashMap;
 use std::fs;
 
 #[derive(Parser)]
@@ -43,8 +41,6 @@ fn main() -> miette::Result<()> {
         }
     };
 
-    let mut variables: HashMap<String, Value> = HashMap::new();
-
     let parsed = match TungParser::parse(crate::Rule::program, &program) {
         Ok(parsed) => parsed,
         Err(e) => {
@@ -53,11 +49,7 @@ fn main() -> miette::Result<()> {
         }
     };
 
-    // Use the original parsed for execute_program, then print_ast consumes it
-    execute_program(parsed.clone(), &mut variables);
-    println!("\n--- AST ---");
-    // No unnecessary clone: print_ast takes ownership
-    print_ast(parsed, 0);
+    run_program(parsed);
 
     Ok(())
 }
