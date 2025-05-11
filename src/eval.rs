@@ -13,7 +13,7 @@ pub fn evaluate_expression(pair: Pair<Rule>, variables: &HashMap<String, Value>)
                 if let Some(right_pair) = inner.next() {
                     let right: Value = evaluate_expression(right_pair, variables);
                     left = match (left, right, op_str) {
-                        (Value::Number(l), Value::Number(r), "==") => Value::Number((l == r) as i64),
+                         (Value::Number(l), Value::Number(r), "==") => Value::Boolean(l == r),
                         (Value::Number(l), Value::Number(r), "!=") => Value::Number((l != r) as i64),
                         (Value::Number(l), Value::Number(r), ">") => Value::Number((l > r) as i64),
                         (Value::Number(l), Value::Number(r), "<") => Value::Number((l < r) as i64),

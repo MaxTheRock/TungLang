@@ -1,8 +1,5 @@
 mod ast;
 mod eval;
-mod interpreter;
-mod value;
-
 use crate::interpreter::run_program;
 use clap::Parser as ClapParser;
 use pest::Parser;
@@ -49,7 +46,7 @@ fn main() -> miette::Result<()> {
         }
     };
 
-    run_program(parsed);
+    run_program(parsed)?;
 
     Ok(())
 }
