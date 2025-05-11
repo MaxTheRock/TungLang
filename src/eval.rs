@@ -1,5 +1,5 @@
+use crate::parser::{TungParser, Rule};
 use crate::value::Value;
-use crate::Rule;
 use pest::iterators::{Pair, Pairs};
 use std::collections::HashMap;
 
@@ -68,15 +68,14 @@ pub fn evaluate_expression(pair: Pair<Rule>, variables: &HashMap<String, Value>)
                         .collect();
                     match func_name {
                         "input" => {
-                            let prompt: String = if let Some(Value::String(s)) = args.get(0) {
-                                s.clone()
-                            } else {
-                                "".to_string()
-                            };
-                            print!("{}", prompt);
+                            if let Some(Value::String(prompt)) = args.get(0) {
+                                print!("{}", prompt);
+                                use std::io::Write;
+                                std::io::stdout().flush().unwrap();
+                            }
                             let mut input: String = String::new();
                             std::io::stdin().read_line(&mut input).unwrap();
-                            Value::String(input.trim_end().to_string())
+                            Value::String(input.trim_end_matches(['\n', '\r']).to_string())
                         }
                         _ => {
                             eprintln!("Unknown function: {}", func_name);

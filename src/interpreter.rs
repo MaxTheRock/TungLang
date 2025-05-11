@@ -1,4 +1,4 @@
-use crate::Rule;
+use crate::parser::{TungParser, Rule};
 use crate::eval::evaluate_expression;
 use crate::value::Value;
 use pest::iterators::{Pair, Pairs};
@@ -26,6 +26,7 @@ fn execute_statement(pair: Pair<Rule>, variables: &mut HashMap<String, Value>) -
             match value {
                 Value::String(s) => println!("{}", s),
                 Value::Number(n) => println!("{}", n),
+                Value::Boolean(b) => println!("{}", b),
                 Value::Undefined => println!("undefined"),
             }
         }
@@ -43,6 +44,7 @@ fn execute_if_statement(pair: Pair<Rule>, variables: &mut HashMap<String, Value>
     let condition_met = match evaluate_expression(condition, variables) {
         Value::Number(n) => n != 0,
         Value::String(ref s) => !s.is_empty(),
+        Value::Boolean(b) => b,
         Value::Undefined => false,
     };
     if condition_met {
@@ -59,6 +61,7 @@ fn execute_if_statement(pair: Pair<Rule>, variables: &mut HashMap<String, Value>
                     let elif_met = match evaluate_expression(elif_condition, variables) {
                         Value::Number(n) => n != 0,
                         Value::String(ref s) => !s.is_empty(),
+                        Value::Boolean(b) => b,
                         Value::Undefined => false,
                     };
                     if elif_met {

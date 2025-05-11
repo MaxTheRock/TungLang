@@ -2,5 +2,6 @@
 pub enum Value {
     Number(i64),
     String(String),
+    Boolean(bool),
     Undefined,
 }

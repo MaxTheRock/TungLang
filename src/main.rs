@@ -1,16 +1,14 @@
-mod ast;
 mod eval;
+mod interpreter;
+mod value;
+mod parser;
 use crate::interpreter::run_program;
-use clap::Parser as ClapParser;
-use pest::Parser;
-use pest_derive::Parser;
+use crate::parser::{TungParser, Rule};
+use clap::Parser;
 use std::fs;
+use pest::Parser as PestParserTrait;
 
 #[derive(Parser)]
-#[grammar = "tung.pest"]
-pub struct TungParser;
-
-#[derive(ClapParser)]
 #[command(author, version, about, long_about = None)]
 pub struct Args {
     /// Path to the TungLang source file
@@ -38,10 +36,9 @@ fn main() -> miette::Result<()> {
         }
     };
 
-    let parsed = match TungParser::parse(crate::Rule::program, &program) {
-        Ok(parsed) => parsed,
+    let parsed = match TungParser::parse(Rule::program, &program) {
+        Ok(mut pairs) => pairs.next().unwrap().into_inner(),
         Err(e) => {
-            // Let the caller / shell know something went wrong.
             return Err(miette::miette!("Error parsing program: {}", e));
         }
     };
