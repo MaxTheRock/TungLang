@@ -1,4 +1,4 @@
-use crate::parser::{TungParser, Rule};
+use crate::parser::Rule;
 use crate::value::Value;
 use pest::iterators::{Pair, Pairs};
 use std::collections::HashMap;
@@ -13,12 +13,17 @@ pub fn evaluate_expression(pair: Pair<Rule>, variables: &HashMap<String, Value>)
                 if let Some(right_pair) = inner.next() {
                     let right: Value = evaluate_expression(right_pair, variables);
                     left = match (left, right, op_str) {
-                         (Value::Number(l), Value::Number(r), "==") => Value::Boolean(l == r),
-        (Value::Number(l), Value::Number(r), "!=") => Value::Boolean(l != r),
-        (Value::Number(l), Value::Number(r), ">") => Value::Boolean(l > r),
-        (Value::Number(l), Value::Number(r), "<") => Value::Boolean(l < r),
-        (Value::Number(l), Value::Number(r), ">=") => Value::Boolean(l >= r),
-        (Value::Number(l), Value::Number(r), "<=") => Value::Boolean(l <= r),
+                        (Value::Number(l), Value::Number(r), "+") => Value::Number(l + r),
+                        (Value::Number(l), Value::Number(r), "-") => Value::Number(l - r),
+                        (Value::Number(l), Value::Number(r), "*") => Value::Number(l * r),
+                        (Value::Number(l), Value::Number(r), "/") => Value::Number(l / r),
+                        (Value::String(l), Value::String(r), "+") => Value::String(l + &r),
+                        (Value::Number(l), Value::Number(r), "==") => Value::Boolean(l == r),
+                        (Value::Number(l), Value::Number(r), "!=") => Value::Boolean(l != r),
+                        (Value::Number(l), Value::Number(r), ">") => Value::Boolean(l > r),
+                        (Value::Number(l), Value::Number(r), "<") => Value::Boolean(l < r),
+                        (Value::Number(l), Value::Number(r), ">=") => Value::Boolean(l >= r),
+                        (Value::Number(l), Value::Number(r), "<=") => Value::Boolean(l <= r),
                         _ => {
                             eprintln!(
                                 "Error: Unsupported operation or type in expression: {}",

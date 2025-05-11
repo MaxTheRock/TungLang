@@ -1,3 +1,6 @@
-var num = input("Enter a number: ")
+var num = 9
+var num2 = 10
 
-print(num)
+var num3 = num + num2
+
+print(num3)
