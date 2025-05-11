@@ -26,7 +26,8 @@ pub struct Args {
 fn main() -> miette::Result<()> {
     let args: Args = Args::parse();
 
-    if !args.file.ends_with(".tung") {
+    let path = std::path::Path::new(&args.file);
+    if path.extension().and_then(|s| s.to_str()).map(|s| s.eq_ignore_ascii_case("tung")) != Some(true) {
         return Err(miette::miette!("Error: Only .tung files are allowed."));
     }
 
@@ -42,14 +43,16 @@ fn main() -> miette::Result<()> {
     let parsed = match TungParser::parse(crate::Rule::program, &program) {
         Ok(parsed) => parsed,
         Err(e) => {
-            eprintln!("Error parsing program: {}", e);
-            return Ok(());
+            // Let the caller / shell know something went wrong.
+            return Err(miette::miette!("Error parsing program: {}", e));
         }
     };
 
-    execute_program(parsed.clone(), &mut variables);
+    // Use the original parsed for execute_program, then print_ast with parsed.clone()
+    execute_program(parsed, &mut variables);
     println!("\n--- AST ---");
-    print_ast(&parsed, 0);
+    // Only clone for pretty-printing, not for execution
+    print_ast(&parsed.clone(), 0);
 
     Ok(())
 }

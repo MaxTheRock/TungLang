@@ -11,16 +11,43 @@ pub fn evaluate_expression(
     match pair.as_rule() {
         Rule::expression | Rule::comparison | Rule::sum | Rule::term => {
             let mut inner: Pairs<Rule> = pair.into_inner();
-            let first: Pair<Rule> = inner.next().unwrap();
-            evaluate_expression(first, variables)
+            let mut left: Value = evaluate_expression(inner.next().unwrap(), variables);
+            while let Some(op_pair) = inner.next() {
+                let op_str: &str = op_pair.as_str();
+                if let Some(right_pair) = inner.next() {
+                    let right: Value = evaluate_expression(right_pair, variables);
+                    left = match (left, right, op_str) {
+                        (Value::Number(l), Value::Number(r), "+") => Value::Number(l + r),
+                        (Value::Number(l), Value::Number(r), "-") => Value::Number(l - r),
+                        (Value::Number(l), Value::Number(r), "*") => Value::Number(l * r),
+                        (Value::Number(l), Value::Number(r), "/") => Value::Number(l / r),
+                        (Value::Number(l), Value::Number(r), "==") => Value::Number((l == r) as i32),
+                        (Value::Number(l), Value::Number(r), "!=") => Value::Number((l != r) as i32),
+                        (Value::Number(l), Value::Number(r), ">") => Value::Number((l > r) as i32),
+                        (Value::Number(l), Value::Number(r), "<") => Value::Number((l < r) as i32),
+                        (Value::Number(l), Value::Number(r), ">=") => Value::Number((l >= r) as i32),
+                        (Value::Number(l), Value::Number(r), "<=") => Value::Number((l <= r) as i32),
+                        _ => {
+                            eprintln!("Error: Unsupported operation or type in expression: {}", op_str);
+                            return Value::Undefined;
+                        }
+                    };
+                } else {
+                    eprintln!("Error: Operator '{}' without right-hand operand", op_str);
+                    return Value::Undefined;
+                }
+            }
+            left
         }
         Rule::factor => {
             let mut inner: Pairs<Rule> = pair.into_inner();
             let first: Pair<Rule> = inner.next().unwrap();
             match first.as_rule() {
                 Rule::string => {
-                    let s: &str = first.as_str();
-                    Value::String(s.to_string())
+                    let raw = first.as_str();
+                    // Remove leading/trailing quotes if present
+                    let stripped = raw.strip_prefix('"').and_then(|s| s.strip_suffix('"')).unwrap_or(raw);
+                    Value::String(stripped.to_string())
                 }
                 Rule::number => {
                     let n: i32 = first.as_str().parse::<i32>().unwrap();
@@ -72,7 +99,11 @@ pub fn execute_program(parsed: Pairs<Rule>, variables: &mut HashMap<String, Valu
                 let mut inner: Pairs<Rule> = pair.into_inner();
                 let var_name: String = inner.next().unwrap().as_str().to_string();
                 let value: Value = evaluate_expression(inner.next().unwrap(), variables);
-                variables.insert(var_name, value);
+                if variables.contains_key(&var_name) {
+                    eprintln!("Error: Variable '{}' is already declared.", var_name);
+                } else {
+                    variables.insert(var_name, value);
+                }
             }
             Rule::print_statement => {
                 let mut inner: Pairs<Rule> = pair.into_inner();

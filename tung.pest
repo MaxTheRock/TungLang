@@ -1,4 +1,5 @@
-WHITESPACE = _{ " " | "\t" | "\n" | "\r" }
+ COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ ("\n" | EOI) | "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
+ WHITESPACE = _{ " " | "\t" | "\n" | "\r" | COMMENT }
 
 program = { SOI ~ statement* ~ EOI }
 
@@ -24,6 +25,7 @@ mul_op = { "*" | "/" }
 factor = { function_call | number | string | IDENTIFIER | "(" ~ expression ~ ")" }
 function_call = { IDENTIFIER ~ "(" ~ (expression ~ ("," ~ expression)*)? ~ ")" }
 
-string = @{ "\"" ~ (!"\"" ~ ANY)* ~ "\"" }
+ string = @{ "\"" ~ (escape_sequence | (!"\"" ~ ANY))* ~ "\"" }
+ escape_sequence = _{ "\\" ~ ("\"" | "n" | "t" | "r" | "\\" | "0") }
 number = @{ ASCII_DIGIT+ }
-IDENTIFIER = @{ ASCII_ALPHANUMERIC+ }
+ IDENTIFIER = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
