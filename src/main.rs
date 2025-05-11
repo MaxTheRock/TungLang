@@ -1,76 +1,55 @@
-use miette::{IntoDiagnostic, Result};
-use pest::Parser;
-use std::env;
-use std::fs;
-use std::process;
-
-mod diagnostics;
-mod interpreter;
-mod keywords;
-mod parser;
 mod value;
+mod ast;
+mod eval;
 
-use crate::diagnostics::TungError;
-use crate::interpreter::Interpreter;
-use crate::parser::{Rule, TungParser};
+use clap::Parser as ClapParser;
+use pest::Parser;
+use pest_derive::Parser;
+use std::collections::HashMap;
+use std::fs;
+use crate::value::Value;
+use crate::ast::print_ast;
+use crate::eval::execute_program;
 
-fn main() -> Result<()> {
-    // Get command-line arguments
-    let args: Vec<String> = env::args().collect();
+#[derive(Parser)]
+#[grammar = "tung.pest"]
+pub struct TungParser;
 
-    // Check if a file path was provided
-    if args.len() < 2 {
-        eprintln!("Usage: {} <file_path> [keywords_config]", args[0]);
-        process::exit(1);
+#[derive(ClapParser)]
+#[command(author, version, about, long_about = None)]
+pub struct Args {
+    /// Path to the TungLang source file
+    #[arg(short, long)]
+    pub file: String,
+}
+
+fn main() -> miette::Result<()> {
+    let args: Args = Args::parse();
+
+    if !args.file.ends_with(".tung") {
+        return Err(miette::miette!("Error: Only .tung files are allowed."));
     }
 
-    // Load default keywords first
-    if let Err(err) = keywords::load_default_keywords() {
-        eprintln!("Warning: Failed to load default keywords: {}", err);
-    }
-
-    // Load custom keywords config if provided
-    if args.len() >= 3 {
-        let keyword_config = &args[2];
-        if let Err(err) = keywords::load_keywords_from_file(keyword_config) {
-            eprintln!("Warning: Failed to load keywords config: {}", err);
-        } else {
-            println!("Loaded custom keywords from {}", keyword_config);
+    let program: String = match fs::read_to_string(&args.file) {
+        Ok(content) => content,
+        Err(e) => {
+            return Err(miette::miette!("Error reading file {}: {}", args.file, e));
         }
-    }
+    };
 
-    // Read the file
-    let file_path = &args[1];
-    println!("Running file: {}", file_path);
+    let mut variables: HashMap<String, Value> = HashMap::new();
 
-    let source = fs::read_to_string(file_path)
-        .into_diagnostic()
-        .map_err(|err| {
-            miette::miette!(code = "tung::file_error", "Failed to read file: {}", err)
-        })?;
+    let parsed = match TungParser::parse(crate::Rule::program, &program) {
+        Ok(parsed) => parsed,
+        Err(e) => {
+            eprintln!("Error parsing program: {}", e);
+            return Ok(());
+        }
+    };
 
-    // Preprocess the source to replace aliases with original keywords
-    let preprocessed_source = keywords::preprocess_source(&source);
-
-    // Debug output to see the preprocessed source
-    println!("Original source:\n{}", source);
-    println!("Preprocessed source:\n{}", preprocessed_source);
-
-    // Parse the file
-    let pairs = TungParser::parse(Rule::file, &preprocessed_source).map_err(|err| {
-        let message = format!("Parse error: {}", err);
-        TungError::ParserError(message, None)
-    })?;
-
-    // Create an interpreter with the source for better error reporting
-    // Use the original source, not preprocessed, for error reporting
-    let mut interpreter = Interpreter::with_source(source.clone());
-
-    // Interpret the parsed file
-    if let Err(err) = interpreter.interpret(pairs) {
-        // Let miette handle the error display
-        return Err(err.into());
-    }
+    execute_program(parsed.clone(), &mut variables);
+    println!("\n--- AST ---");
+    print_ast(&parsed, 0);
 
     Ok(())
 }
