@@ -1,15 +1,15 @@
-mod value;
 mod ast;
 mod eval;
+mod value;
 
+use crate::ast::print_ast;
+use crate::eval::execute_program;
+use crate::value::Value;
 use clap::Parser as ClapParser;
 use pest::Parser;
 use pest_derive::Parser;
 use std::collections::HashMap;
 use std::fs;
-use crate::value::Value;
-use crate::ast::print_ast;
-use crate::eval::execute_program;
 
 #[derive(Parser)]
 #[grammar = "tung.pest"]
@@ -27,7 +27,12 @@ fn main() -> miette::Result<()> {
     let args: Args = Args::parse();
 
     let path = std::path::Path::new(&args.file);
-    if path.extension().and_then(|s| s.to_str()).map(|s| s.eq_ignore_ascii_case("tung")) != Some(true) {
+    if path
+        .extension()
+        .and_then(|s| s.to_str())
+        .map(|s| s.eq_ignore_ascii_case("tung"))
+        != Some(true)
+    {
         return Err(miette::miette!("Error: Only .tung files are allowed."));
     }
 
@@ -48,11 +53,11 @@ fn main() -> miette::Result<()> {
         }
     };
 
-    // Use the original parsed for execute_program, then print_ast with parsed.clone()
-    execute_program(parsed, &mut variables);
+    // Use the original parsed for execute_program, then print_ast consumes it
+    execute_program(parsed.clone(), &mut variables);
     println!("\n--- AST ---");
-    // Only clone for pretty-printing, not for execution
-    print_ast(&parsed.clone(), 0);
+    // No unnecessary clone: print_ast takes ownership
+    print_ast(parsed, 0);
 
     Ok(())
 }

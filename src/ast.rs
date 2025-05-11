@@ -1,19 +1,27 @@
-use pest::iterators::Pairs;
 use crate::Rule;
+use pest::iterators::Pairs;
 
- pub fn print_ast(parsed: &Pairs<Rule>, indent: usize) -> String {
-     let mut result = String::new();
-     for pair in parsed.clone() {
-         let rule: String = format!("{:?}", pair.as_rule());
-         let span = pair.as_span();
-         let text: String = span.as_str().replace("\n", "\\n");
-         result.push_str(&format!("{space}{rule}: '{text}'\n", 
-                      space = "  ".repeat(indent), rule = rule, text = text));
-         
-         let inner = pair.into_inner();
-         if !inner.clone().peek().is_none() {
-             result.push_str(&print_ast(&inner, indent + 1));
-         }
-     }
-     result
- }
+pub fn print_ast(pairs: Pairs<Rule>, indent: usize) -> String {
+    let mut result: String = String::new();
+    let pairs_iter: Pairs<Rule> = pairs;
+    for pair in pairs_iter {
+        let rule: Rule = pair.as_rule();
+        let span: pest::Span = pair.as_span();
+        let text: &str = span.as_str();
+        let formatted_text: String = text.replace("\n", "\\n");
+        let space: String = "  ".repeat(indent);
+        result.push_str(&format!(
+            "{space}{rule:?}: '{text}'\n",
+            space = space,
+            rule = rule,
+            text = formatted_text
+        ));
+        let inner: Pairs<Rule> = pair.into_inner();
+        let inner_peek = inner.clone();
+        if inner_peek.peek().is_some() {
+            let inner_result: String = print_ast(inner, indent + 1);
+            result.push_str(&inner_result);
+        }
+    }
+    result
+}
