@@ -23,6 +23,12 @@ fn execute_statement(
             let value: Value = evaluate_expression(inner.next().unwrap(), variables);
             variables.insert(var_name, value);
         }
+        Rule::assignment => {
+            let mut inner = pair.into_inner();
+            let var_name = inner.next().unwrap().as_str().to_string();
+            let value = evaluate_expression(inner.next().unwrap(), variables);
+            variables.insert(var_name, value);
+        }
         Rule::print_statement => {
             let mut inner: pest::iterators::Pairs<Rule> = pair.into_inner();
             let value: Value = evaluate_expression(inner.next().unwrap(), variables);
@@ -35,6 +41,14 @@ fn execute_statement(
         }
         Rule::if_statement => {
             execute_if_statement(pair, variables)?;
+        }
+        Rule::while_statement => {
+            let mut inner = pair.into_inner();
+            let condition = inner.next().unwrap();
+            let block = inner.next().unwrap();
+            while is_truthy(evaluate_expression(condition.clone(), variables)) {
+                execute_block(block.clone(), variables)?;
+            }
         }
         _ => {}
     }

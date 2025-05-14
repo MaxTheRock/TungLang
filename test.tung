@@ -1,7 +1,11 @@
-var name = input("Input name: ")
+var amount = input("How many numbers do you want to add? ")
+var total = 0
+var current = 1
 
-if name == "kaiden" {
-    print("Welcome Kaiden")
-} else {
-    print("Go away, " + name)
+while current <= int(amount) {
+    var number = input("Please enter a number " + str(current) + " - ")
+    total = total + number
+    current = current + 1
 }
+
+print(total)

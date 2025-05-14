@@ -12,43 +12,60 @@ pub fn evaluate_expression(pair: Pair<Rule>, variables: &HashMap<String, Value>)
                 let op_str: &str = op_pair.as_str();
                 if let Some(right_pair) = inner.next() {
                     let right: Value = evaluate_expression(right_pair, variables);
-                    left = match (left, right, op_str) {
+                    left = match (left, right.clone(), op_str) {
+                        // Arithmetic
                         (Value::Number(l), Value::Number(r), "+") => Value::Number(l + r),
-                        (Value::String(l), Value::String(r), "+") => Value::String(l + &r),
                         (Value::Number(l), Value::Number(r), "-") => Value::Number(l - r),
                         (Value::Number(l), Value::Number(r), "*") => Value::Number(l * r),
                         (Value::Number(l), Value::Number(r), "/") => Value::Number(l / r),
                         (Value::Number(l), Value::Number(r), "%") => Value::Number(l % r),
-
+                        // String concatenation
+                        (Value::String(l), Value::String(r), "+") => Value::String(l + &r),
+                        // Equality
                         (Value::Number(l), Value::Number(r), "==") => Value::Boolean(l == r),
                         (Value::String(l), Value::String(r), "==") => Value::Boolean(l == r),
                         (Value::Boolean(l), Value::Boolean(r), "==") => Value::Boolean(l == r),
-
+                        // Inequality
                         (Value::Number(l), Value::Number(r), "!=") => Value::Boolean(l != r),
                         (Value::String(l), Value::String(r), "!=") => Value::Boolean(l != r),
                         (Value::Boolean(l), Value::Boolean(r), "!=") => Value::Boolean(l != r),
-
-                        (Value::Number(l), Value::Number(r), ">") => Value::Boolean(l > r),
-                        (Value::Number(l), Value::Number(r), "<") => Value::Boolean(l < r),
-                        (Value::Number(l), Value::Number(r), ">=") => Value::Boolean(l >= r),
-                        (Value::Number(l), Value::Number(r), "<=") => Value::Boolean(l <= r),
-
-                        (Value::String(l), Value::String(r), ">") => Value::Boolean(l > r),
-                        (Value::String(l), Value::String(r), "<") => Value::Boolean(l < r),
-                        (Value::String(l), Value::String(r), ">=") => Value::Boolean(l >= r),
-                        (Value::String(l), Value::String(r), "<=") => Value::Boolean(l <= r),
-
+                        // Comparison
+                        (Value::Number(l), Value::Number(r), op)
+                            if [">", "<", ">=", "<="].contains(&op) =>
+                        {
+                            let res = match op {
+                                ">" => l > r,
+                                "<" => l < r,
+                                ">=" => l >= r,
+                                "<=" => l <= r,
+                                _ => unreachable!(),
+                            };
+                            Value::Boolean(res)
+                        }
+                        (Value::String(l), Value::String(r), op)
+                            if [">", "<", ">=", "<="].contains(&op) =>
+                        {
+                            let res = match op {
+                                ">" => l > r,
+                                "<" => l < r,
+                                ">=" => l >= r,
+                                "<=" => l <= r,
+                                _ => unreachable!(),
+                            };
+                            Value::Boolean(res)
+                        }
+                        // Logical
                         (Value::Boolean(l), Value::Boolean(r), "&&") => Value::Boolean(l && r),
                         (Value::Boolean(l), Value::Boolean(r), "||") => Value::Boolean(l || r),
-
+                        // Unary
                         (Value::Boolean(l), _, "!") => Value::Boolean(!l),
-                        (Value::Number(l), _, "-") if op_str == "-" && right == Value::Undefined => Value::Number(-l),
+                        (Value::Number(l), Value::Undefined, "-") => Value::Number(-l),
                         _ => {
                             eprintln!(
                                 "Error: Unsupported operation or type in expression: {}",
                                 op_str
                             );
-                            return Value::Undefined;
+                            Value::Undefined
                         }
                     };
                 } else {
@@ -98,7 +115,38 @@ pub fn evaluate_expression(pair: Pair<Rule>, variables: &HashMap<String, Value>)
                             }
                             let mut input: String = String::new();
                             std::io::stdin().read_line(&mut input).unwrap();
-                            Value::String(input.trim_end_matches(['\n', '\r']).to_string())
+                            let input = input.trim_end_matches(['\n', '\r']);
+                            if let Ok(n) = input.parse::<i64>() {
+                                Value::Number(n)
+                            } else {
+                                Value::String(input.to_string())
+                            }
+                        }
+                        "int" => {
+                            if let Some(val) = args.get(0) {
+                                match val {
+                                    Value::Number(n) => Value::Number(*n),
+                                    Value::String(s) => s
+                                        .parse::<i64>()
+                                        .map(Value::Number)
+                                        .unwrap_or(Value::Undefined),
+                                    _ => Value::Undefined,
+                                }
+                            } else {
+                                Value::Undefined
+                            }
+                        }
+                        "str" => {
+                            if let Some(val) = args.get(0) {
+                                match val {
+                                    Value::String(s) => Value::String(s.clone()),
+                                    Value::Number(n) => Value::String(n.to_string()),
+                                    Value::Boolean(b) => Value::String(b.to_string()),
+                                    Value::Undefined => Value::String("undefined".to_string()),
+                                }
+                            } else {
+                                Value::Undefined
+                            }
                         }
                         _ => {
                             eprintln!("Unknown function: {}", func_name);
@@ -108,6 +156,10 @@ pub fn evaluate_expression(pair: Pair<Rule>, variables: &HashMap<String, Value>)
                 }
                 _ => Value::Undefined,
             }
+        }
+        Rule::while_statement => {
+            // While statements are handled in the interpreter, not as expressions
+            Value::Undefined
         }
         _ => Value::Undefined,
     }
