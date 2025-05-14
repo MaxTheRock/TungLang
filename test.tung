@@ -28,7 +28,7 @@ if choice == 1 {
     amount /= 1.17
     symbol = "£"
 } elif choice == 4 {
-    amount /= 1.17
+    amount /= 1.29
     symbol = "£"
 }
 
