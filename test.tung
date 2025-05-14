@@ -1,6 +1,7 @@
-var num = 9
-var num2 = 10
+var name = input("Input name: ")
 
-var num3 = num + num2
-
-print(num3)
+if name == "kaiden" {
+    print("Welcome Kaiden")
+} else {
+    print("Go away, " + name)
+}

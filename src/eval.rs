@@ -10,16 +10,18 @@ pub fn evaluate_expression(pair: Pair<Rule>, variables: &HashMap<String, Value>)
             let mut left: Value = evaluate_expression(inner.next().unwrap(), variables);
             while let Some(op_pair) = inner.next() {
                 let op_str: &str = op_pair.as_str();
-                if let Some(right_pair)= inner.next() {
+                if let Some(right_pair) = inner.next() {
                     let right: Value = evaluate_expression(right_pair, variables);
                     left = match (left, right, op_str) {
                         (Value::Number(l), Value::Number(r), "+") => Value::Number(l + r),
+                        (Value::String(l), Value::String(r), "+") => Value::String(l + &r),
                         (Value::Number(l), Value::Number(r), "-") => Value::Number(l - r),
                         (Value::Number(l), Value::Number(r), "*") => Value::Number(l * r),
                         (Value::Number(l), Value::Number(r), "/") => Value::Number(l / r),
-                        (Value::String(l), Value::String(r), "+") => Value::String(l + &r),
                         (Value::Number(l), Value::Number(r), "==") => Value::Boolean(l == r),
+                        (Value::String(l), Value::String(r), "==") => Value::Boolean(l == r),
                         (Value::Number(l), Value::Number(r), "!=") => Value::Boolean(l != r),
+                        (Value::String(l), Value::String(r), "!=") => Value::Boolean(l != r),
                         (Value::Number(l), Value::Number(r), ">") => Value::Boolean(l > r),
                         (Value::Number(l), Value::Number(r), "<") => Value::Boolean(l < r),
                         (Value::Number(l), Value::Number(r), ">=") => Value::Boolean(l >= r),

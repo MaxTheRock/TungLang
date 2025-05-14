@@ -1,5 +1,7 @@
- COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ ("\n" | EOI) | "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
+COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ ("\n" | EOI) | "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
  WHITESPACE = _{ " " | "\t" | "\n" | "\r" | COMMENT }
+
+block = { "{" ~ statement* ~ "}" }
 
 program = { SOI ~ statement* ~ EOI }
 
@@ -11,9 +13,9 @@ statement = _{
 
 variable_declaration = { "var" ~ IDENTIFIER ~ "=" ~ expression }
 print_statement = { "print" ~ "(" ~ expression ~ ")" }
-if_statement = { "if" ~ expression ~ "{" ~ statement* ~ "}" ~ elif_block* ~ else_block? }
-elif_block = { "elif" ~ expression ~ "{" ~ statement* ~ "}" }
-else_block = { "else" ~ "{" ~ statement* ~ "}" }
+if_statement = { "if" ~ expression ~ block ~ elif_block* ~ else_block? }
+elif_block = { "elif" ~ expression ~ block }
+else_block = { "else" ~ block }
 
 expression = _{ comparison }
 comparison = { sum ~ (comp_op ~ sum)* }

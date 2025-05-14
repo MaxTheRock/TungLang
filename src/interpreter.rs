@@ -12,7 +12,10 @@ pub fn run_program(parsed: Pairs<Rule>) -> miette::Result<()> {
     Ok(())
 }
 
-fn execute_statement(pair: Pair<Rule>, variables: &mut HashMap<String, Value>) -> miette::Result<()> {
+fn execute_statement(
+    pair: Pair<Rule>,
+    variables: &mut HashMap<String, Value>,
+) -> miette::Result<()> {
     match pair.as_rule() {
         Rule::variable_declaration => {
             let mut inner: pest::iterators::Pairs<Rule> = pair.into_inner();
@@ -47,40 +50,39 @@ fn is_truthy(value: Value) -> bool {
     }
 }
 
-fn execute_if_statement(pair: Pair<Rule>, variables: &mut HashMap<String, Value>) -> miette::Result<()> {
-    let mut inner: pest::iterators::Pairs<Rule> = pair.into_inner();
-    let condition: Pair<Rule> = inner.next().unwrap();
-    let condition_met: bool = is_truthy(evaluate_expression(condition, variables));
+fn execute_if_statement(
+    pair: Pair<Rule>,
+    variables: &mut HashMap<String, Value>,
+) -> miette::Result<()> {
+    let mut inner = pair.into_inner();
+    let condition = inner.next().unwrap();
+    let block = inner.next().unwrap(); // Always the block after the condition
+    let condition_met = is_truthy(evaluate_expression(condition, variables));
     if condition_met {
-        let block: Pair<Rule> = inner.next().unwrap();
         execute_block(block, variables)?;
+        // Consume remaining elif/else blocks but do nothing
         return Ok(());
     } else {
-        let mut found: bool = false;
+        // Skip the if block, check elif/else
         for elif_or_else in inner {
             match elif_or_else.as_rule() {
                 Rule::elif_block => {
-                    let mut elif_inner: pest::iterators::Pairs<Rule> = elif_or_else.into_inner();
-                    let elif_condition: Pair<Rule> = elif_inner.next().unwrap();
-                    let elif_met: bool = is_truthy(evaluate_expression(elif_condition, variables));
+                    let mut elif_inner = elif_or_else.into_inner();
+                    let elif_condition = elif_inner.next().unwrap();
+                    let elif_block = elif_inner.next().unwrap();
+                    let elif_met = is_truthy(evaluate_expression(elif_condition, variables));
                     if elif_met {
-                        let block: Pair<Rule> = elif_inner.next().unwrap();
-                        execute_block(block, variables)?;
-                        found = true;
-                        break;
+                        execute_block(elif_block, variables)?;
+                        return Ok(());
                     }
                 }
                 Rule::else_block => {
-                    let block: Pair<Rule> = elif_or_else.into_inner().next().unwrap();
-                    execute_block(block, variables)?;
-                    found = true;
-                    break;
+                    let else_block = elif_or_else.into_inner().next().unwrap();
+                    execute_block(else_block, variables)?;
+                    return Ok(());
                 }
                 _ => {}
             }
-        }
-        if found {
-            return Ok(());
         }
     }
     Ok(())
