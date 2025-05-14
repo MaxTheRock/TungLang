@@ -23,13 +23,13 @@ fn execute_statement(
         Rule::variable_declaration => {
             let mut inner: Pairs<Rule> = pair.into_inner();
             let var_name: String = inner.next().unwrap().as_str().to_string();
-            let value: Value = evaluate_expression(inner.next().unwrap(), variables, stdlib);
+            let value: Value = evaluate_expression(inner.next().unwrap(), variables, stdlib)?;
             variables.insert(var_name, value);
         }
         Rule::assignment => {
             let mut inner: Pairs<Rule> = pair.into_inner();
             let var_name: String = inner.next().unwrap().as_str().to_string();
-            let value: Value = evaluate_expression(inner.next().unwrap(), variables, stdlib);
+            let value: Value = evaluate_expression(inner.next().unwrap(), variables, stdlib)?;
             if variables.contains_key(&var_name) {
                 variables.insert(var_name, value);
             } else {
@@ -41,19 +41,18 @@ fn execute_statement(
             let var_name: String = inner.next().unwrap().as_str().to_string();
             let op_pair: Pair<Rule> = inner.next().unwrap();
             let op: &str = op_pair.as_str();
-            let value: Value = evaluate_expression(inner.next().unwrap(), variables, stdlib);
+            let value: Value = evaluate_expression(inner.next().unwrap(), variables, stdlib)?;
             if let Some(current) = variables.get(&var_name).cloned() {
-            // Remove '=' from op (e.g., '*=' -> '*')
-            let op_str: &str = &op[..op.len()-1];
-            let new_value: Value = crate::eval::operators::apply_operator(current, value, op_str);
-            variables.insert(var_name, new_value);
+                let op_str: &str = &op[..op.len()-1];
+                let new_value: Value = crate::eval::operators::apply_operator(current, value, op_str)?;
+                variables.insert(var_name, new_value);
             } else {
-            return Err(miette::miette!("Assignment to undefined variable '{}'.", var_name));
+                return Err(miette::miette!("Assignment to undefined variable '{}'.", var_name));
             }
         }
         Rule::print_statement => {
             let mut inner: Pairs<Rule> = pair.into_inner();
-            let value: Value = evaluate_expression(inner.next().unwrap(), variables, stdlib);
+            let value: Value = evaluate_expression(inner.next().unwrap(), variables, stdlib)?;
             match value {
                 Value::String(s) => println!("{}", s),
                 Value::Number(n) => println!("{}", n),
@@ -61,7 +60,7 @@ fn execute_statement(
                 Value::Boolean(b) => println!("{}", b),
                 Value::Array(arr) => println!("{:?}", arr),
                 Value::Dict(map) => println!("{:?}", map),
-                Value::Undefined => println!("undefined"),
+                Value::Undefined => return Err(miette::miette!("Attempted to print an undefined value.")),
             }
         }
         Rule::if_statement => {
@@ -71,7 +70,11 @@ fn execute_statement(
             let mut inner: Pairs<Rule> = pair.into_inner();
             let condition: Pair<Rule> = inner.next().unwrap();
             let block: Pair<Rule> = inner.next().unwrap();
-            while is_truthy(evaluate_expression(condition.clone(), variables, stdlib)) {
+            loop {
+                let cond_val = evaluate_expression(condition.clone(), variables, stdlib)?;
+                if !is_truthy(cond_val.clone()) {
+                    break;
+                }
                 let mut local_vars: HashMap<String, Value> = variables.clone();
                 execute_block(block.clone(), &mut local_vars, stdlib)?;
                 for (k, v) in local_vars.iter() {
@@ -106,7 +109,8 @@ fn execute_if_statement(
     let mut inner: Pairs<Rule> = pair.into_inner();
     let condition: Pair<Rule> = inner.next().unwrap();
     let block: Pair<Rule> = inner.next().unwrap();
-    let condition_met: bool = is_truthy(evaluate_expression(condition, variables, stdlib));
+    let cond_val = evaluate_expression(condition, variables, stdlib)?;
+    let condition_met: bool = is_truthy(cond_val);
     if condition_met {
         let mut local_vars: HashMap<String, Value> = variables.clone();
         execute_block(block, &mut local_vars, stdlib)?;
@@ -123,7 +127,8 @@ fn execute_if_statement(
                     let mut elif_inner: Pairs<Rule> = elif_or_else.into_inner();
                     let elif_condition: Pair<Rule> = elif_inner.next().unwrap();
                     let elif_block: Pair<Rule> = elif_inner.next().unwrap();
-                    let elif_met: bool = is_truthy(evaluate_expression(elif_condition, variables, stdlib));
+                    let elif_val = evaluate_expression(elif_condition, variables, stdlib)?;
+                    let elif_met: bool = is_truthy(elif_val);
                     if elif_met {
                         let mut local_vars: HashMap<String, Value> = variables.clone();
                         execute_block(elif_block, &mut local_vars, stdlib)?;

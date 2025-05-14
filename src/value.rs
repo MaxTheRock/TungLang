@@ -6,7 +6,7 @@ pub enum Value {
     Boolean(bool),
     Array(Vec<Value>),
     Dict(std::collections::HashMap<String, Value>),
-    Undefined,
+    Undefined, // Added to represent undefined values
 }
 
 pub type BuiltinFn = fn(&[Value]) -> Value;

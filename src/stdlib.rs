@@ -1,12 +1,12 @@
 // TungLang standard library setup and function dispatch
-use crate::eval::std_input;
-use crate::eval::std_print;
-use crate::eval::std_abs;
-use crate::eval::std_len;
-use crate::eval::std_range;
-use crate::eval::std_cast;
-use crate::eval::std_math;
-use crate::eval::std_list;
+use crate::eval::std::std_input::std_input;
+use crate::eval::std::std_print::std_print;
+use crate::eval::std::std_abs::std_abs;
+use crate::eval::std::std_len::std_len;
+use crate::eval::std::std_range;
+use crate::eval::std::std_cast;
+use crate::eval::std::std_math;
+use crate::eval::std::std_list;
 use crate::value::{Value, BuiltinFn};
 use std::collections::HashMap;
 
@@ -19,17 +19,17 @@ impl StdLib {
         let mut functions: HashMap<&'static str, BuiltinFn> = HashMap::new();
         
         // Basic functions
-        functions.insert("input", |args: &[Value]| std_input::std_input(args.get(0).unwrap_or(&Value::String(String::new()))));
-        functions.insert("print", |args: &[Value]| { std_print::std_print(args.get(0).unwrap_or(&Value::Undefined)); Value::Undefined });
-        functions.insert("abs", |args: &[Value]| std_abs::std_abs(args.get(0).unwrap_or(&Value::Undefined)));
-        functions.insert("len", |args: &[Value]| std_len::std_len(args.get(0).unwrap_or(&Value::Undefined)));
+        functions.insert("input", |args: &[Value]| std_input(args.get(0).unwrap_or(&Value::String(String::new()))));
+        functions.insert("print", |args: &[Value]| { std_print(args.get(0).unwrap_or(&Value::String(String::new()))); Value::Number(0) });
+        functions.insert("abs", |args: &[Value]| std_abs(args.get(0).unwrap_or(&Value::Number(0))));
+        functions.insert("len", |args: &[Value]| std_len(args.get(0).unwrap_or(&Value::String(String::new()))));
         functions.insert("range", std_range::std_range);
         
         // Type conversion functions (like Python)
-        functions.insert("int", |args: &[Value]| std_cast::std_int(args.get(0).unwrap_or(&Value::Undefined)));
-        functions.insert("str", |args: &[Value]| std_cast::std_str(args.get(0).unwrap_or(&Value::Undefined)));
-        functions.insert("float", |args: &[Value]| std_cast::std_float(args.get(0).unwrap_or(&Value::Undefined)));
-        functions.insert("bool", |args: &[Value]| std_cast::std_bool(args.get(0).unwrap_or(&Value::Undefined)));
+        functions.insert("int", |args: &[Value]| std_cast::std_int(args.get(0).unwrap_or(&Value::Number(0))));
+        functions.insert("str", |args: &[Value]| std_cast::std_str(args.get(0).unwrap_or(&Value::String(String::new()))));
+        functions.insert("float", |args: &[Value]| std_cast::std_float(args.get(0).unwrap_or(&Value::Number(0))));
+        functions.insert("bool", |args: &[Value]| std_cast::std_bool(args.get(0).unwrap_or(&Value::Number(0))));
         
         // Math functions (like Python)
         functions.insert("min", std_math::std_min);
