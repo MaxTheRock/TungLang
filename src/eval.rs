@@ -33,7 +33,7 @@ pub fn evaluate_expression(pair: Pair<Rule>, variables: &HashMap<String, Value>)
                         (Value::Number(l), Value::Number(r), op)
                             if [">", "<", ">=", "<="].contains(&op) =>
                         {
-                            let res = match op {
+                            let res: bool = match op {
                                 ">" => l > r,
                                 "<" => l < r,
                                 ">=" => l >= r,
@@ -45,7 +45,7 @@ pub fn evaluate_expression(pair: Pair<Rule>, variables: &HashMap<String, Value>)
                         (Value::String(l), Value::String(r), op)
                             if [">", "<", ">=", "<="].contains(&op) =>
                         {
-                            let res = match op {
+                            let res: bool = match op {
                                 ">" => l > r,
                                 "<" => l < r,
                                 ">=" => l >= r,
@@ -115,7 +115,7 @@ pub fn evaluate_expression(pair: Pair<Rule>, variables: &HashMap<String, Value>)
                             }
                             let mut input: String = String::new();
                             std::io::stdin().read_line(&mut input).unwrap();
-                            let input = input.trim_end_matches(['\n', '\r']);
+                            let input: &str = input.trim_end_matches(['\n', '\r']);
                             if let Ok(n) = input.parse::<i64>() {
                                 Value::Number(n)
                             } else {

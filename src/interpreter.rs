@@ -18,19 +18,19 @@ fn execute_statement(
 ) -> miette::Result<()> {
     match pair.as_rule() {
         Rule::variable_declaration => {
-            let mut inner: pest::iterators::Pairs<Rule> = pair.into_inner();
+            let mut inner: Pairs<Rule> = pair.into_inner();
             let var_name: String = inner.next().unwrap().as_str().to_string();
             let value: Value = evaluate_expression(inner.next().unwrap(), variables);
             variables.insert(var_name, value);
         }
         Rule::assignment => {
-            let mut inner = pair.into_inner();
-            let var_name = inner.next().unwrap().as_str().to_string();
-            let value = evaluate_expression(inner.next().unwrap(), variables);
+            let mut inner: Pairs<Rule> = pair.into_inner();
+            let var_name: String = inner.next().unwrap().as_str().to_string();
+            let value: Value = evaluate_expression(inner.next().unwrap(), variables);
             variables.insert(var_name, value);
         }
         Rule::print_statement => {
-            let mut inner: pest::iterators::Pairs<Rule> = pair.into_inner();
+            let mut inner: Pairs<Rule> = pair.into_inner();
             let value: Value = evaluate_expression(inner.next().unwrap(), variables);
             match value {
                 Value::String(s) => println!("{}", s),
@@ -43,9 +43,9 @@ fn execute_statement(
             execute_if_statement(pair, variables)?;
         }
         Rule::while_statement => {
-            let mut inner = pair.into_inner();
-            let condition = inner.next().unwrap();
-            let block = inner.next().unwrap();
+            let mut inner: Pairs<Rule> = pair.into_inner();
+            let condition: Pair<Rule> = inner.next().unwrap();
+            let block: Pair<Rule> = inner.next().unwrap();
             while is_truthy(evaluate_expression(condition.clone(), variables)) {
                 execute_block(block.clone(), variables)?;
             }
@@ -68,9 +68,9 @@ fn execute_if_statement(
     pair: Pair<Rule>,
     variables: &mut HashMap<String, Value>,
 ) -> miette::Result<()> {
-    let mut inner = pair.into_inner();
-    let condition = inner.next().unwrap();
-    let block = inner.next().unwrap(); // Always the block after the condition
+    let mut inner: Pairs<Rule> = pair.into_inner();
+    let condition: Pair<Rule> = inner.next().unwrap();
+    let block: Pair<Rule> = inner.next().unwrap(); // Always the block after the condition
     let condition_met: bool = is_truthy(evaluate_expression(condition, variables));
     if condition_met {
         execute_block(block, variables)?;
@@ -81,9 +81,9 @@ fn execute_if_statement(
         for elif_or_else in inner {
             match elif_or_else.as_rule() {
                 Rule::elif_block => {
-                    let mut elif_inner = elif_or_else.into_inner();
-                    let elif_condition = elif_inner.next().unwrap();
-                    let elif_block = elif_inner.next().unwrap();
+                    let mut elif_inner: Pairs<Rule> = elif_or_else.into_inner();
+                    let elif_condition: Pair<Rule> = elif_inner.next().unwrap();
+                    let elif_block: Pair<Rule> = elif_inner.next().unwrap();
                     let elif_met: bool = is_truthy(evaluate_expression(elif_condition, variables));
                     if elif_met {
                         execute_block(elif_block, variables)?;
@@ -91,7 +91,7 @@ fn execute_if_statement(
                     }
                 }
                 Rule::else_block => {
-                    let else_block = elif_or_else.into_inner().next().unwrap();
+                    let else_block: Pair<Rule> = elif_or_else.into_inner().next().unwrap();
                     execute_block(else_block, variables)?;
                     return Ok(());
                 }
