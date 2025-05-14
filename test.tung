@@ -2,6 +2,7 @@ print("Converter:")
 
 var choice = 0
 var choices = [1, 2, 3, 4]
+var symbol = ""
 
 print("(1) Pounds to Euros")
 print("(2) Pounds to Dollars")
@@ -9,5 +10,26 @@ print("(3) Euros to Pounds")
 print("(4) Dollars to Pounds")
 
 while choice !in choices {
-    choice = input(": ")
+    choice = int(input(": "))
+    if choice !in choices {
+        print("Please enter a number shown above.")
+    }
 }
+
+var amount = input("Enter amount to convert: ")
+
+if choice == 1 {
+    amount *= 1.17
+    symbol = "€"
+} elif choice == 2 {
+    amount *= 1.29
+    symbol = "$"
+} elif choice == 3 {
+    amount /= 1.17
+    symbol = "£"
+} elif choice == 4 {
+    amount /= 1.17
+    symbol = "£"
+}
+
+print(symbol + amount)

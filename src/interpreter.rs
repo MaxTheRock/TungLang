@@ -36,6 +36,21 @@ fn execute_statement(
                 return Err(miette::miette!("Assignment to undefined variable '{}'.", var_name));
             }
         }
+        Rule::augmented_assignment => {
+            let mut inner: Pairs<Rule> = pair.into_inner();
+            let var_name: String = inner.next().unwrap().as_str().to_string();
+            let op_pair: Pair<Rule> = inner.next().unwrap();
+            let op: &str = op_pair.as_str();
+            let value: Value = evaluate_expression(inner.next().unwrap(), variables, stdlib);
+            if let Some(current) = variables.get(&var_name).cloned() {
+            // Remove '=' from op (e.g., '*=' -> '*')
+            let op_str: &str = &op[..op.len()-1];
+            let new_value: Value = crate::eval::operators::apply_operator(current, value, op_str);
+            variables.insert(var_name, new_value);
+            } else {
+            return Err(miette::miette!("Assignment to undefined variable '{}'.", var_name));
+            }
+        }
         Rule::print_statement => {
             let mut inner: Pairs<Rule> = pair.into_inner();
             let value: Value = evaluate_expression(inner.next().unwrap(), variables, stdlib);

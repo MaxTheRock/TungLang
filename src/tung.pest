@@ -30,10 +30,11 @@ block = { "{" ~ statement* ~ "}" }
 // A program is a sequence of statements
 program = { SOI ~ statement* ~ EOI }
 
-// Statements: variable declaration, assignment, print, if, while
+// Statements: variable declaration, assignment, augmented assignment, print, if, while
 statement = _{
     variable_declaration
     | assignment
+    | augmented_assignment
     | print_statement
     | if_statement
     | while_statement
@@ -44,6 +45,12 @@ variable_declaration = { "var" ~ IDENTIFIER ~ "=" ~ expression }
 
 // Assignment: name = expr
 assignment = { IDENTIFIER ~ "=" ~ expression }
+
+// Augmented assignment: name op= expr
+augmented_assignment = { IDENTIFIER ~ aug_assign_op ~ expression }
+
+// Augmented assignment operators: +=, -=, *=, /=, //=, %=, **=
+aug_assign_op = { "+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "**=" }
 
 // Print statement: print(expr)
 print_statement = { "print" ~ "(" ~ expression ~ ")" }
