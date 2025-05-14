@@ -5,3 +5,12 @@ pub enum Value {
     Boolean(bool),
     Undefined,
 }
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct Number(pub i64);
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct StringValue(pub String);
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct BooleanValue(pub bool);

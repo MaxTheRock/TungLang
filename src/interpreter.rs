@@ -57,7 +57,7 @@ fn execute_if_statement(
     let mut inner = pair.into_inner();
     let condition = inner.next().unwrap();
     let block = inner.next().unwrap(); // Always the block after the condition
-    let condition_met = is_truthy(evaluate_expression(condition, variables));
+    let condition_met: bool = is_truthy(evaluate_expression(condition, variables));
     if condition_met {
         execute_block(block, variables)?;
         // Consume remaining elif/else blocks but do nothing
@@ -70,7 +70,7 @@ fn execute_if_statement(
                     let mut elif_inner = elif_or_else.into_inner();
                     let elif_condition = elif_inner.next().unwrap();
                     let elif_block = elif_inner.next().unwrap();
-                    let elif_met = is_truthy(evaluate_expression(elif_condition, variables));
+                    let elif_met: bool = is_truthy(evaluate_expression(elif_condition, variables));
                     if elif_met {
                         execute_block(elif_block, variables)?;
                         return Ok(());
