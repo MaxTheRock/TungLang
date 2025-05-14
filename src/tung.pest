@@ -1,0 +1,109 @@
+// TungLang Grammar File
+//
+// This file uses the Pest parser grammar format.
+//
+// Pest grammar basics:
+// - Rules are defined as `name = { ... }` or `name = _{ ... }` (silent rule)
+// - `~` means sequence (A ~ B: A then B)
+// - `|` means choice (A | B: A or B)
+// - `{ ... }` is a normal rule, `_` means silent (not captured in parse tree)
+// - `@` means atomic (no whitespace skipping inside)
+// - `SOI`/`EOI` are start/end of input
+// - `*` means zero or more, `+` means one or more, `?` means optional
+// - `ANY` matches any character
+//
+// Comments in Pest start with // or /* ... */
+//
+// Each rule below is documented for clarity.
+
+// --- TungLang Grammar ---
+
+// Matches comments in the code, both single-line and multi-line
+COMMENT = _{ "//" ~ (!"\n" ~ ANY)* ~ ("\n" | EOI) | "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
+
+// Matches whitespace characters and comments
+WHITESPACE = _{ " " | "\t" | "\n" | "\r" | COMMENT }
+
+// A block is a sequence of statements in curly braces
+block = { "{" ~ statement* ~ "}" }
+
+// A program is a sequence of statements
+program = { SOI ~ statement* ~ EOI }
+
+// Statements: variable declaration, assignment, print, if, while
+statement = _{
+    variable_declaration
+    | assignment
+    | print_statement
+    | if_statement
+    | while_statement
+}
+
+// Variable declaration: var name = expr
+variable_declaration = { "var" ~ IDENTIFIER ~ "=" ~ expression }
+
+// Assignment: name = expr
+assignment = { IDENTIFIER ~ "=" ~ expression }
+
+// Print statement: print(expr)
+print_statement = { "print" ~ "(" ~ expression ~ ")" }
+
+// If statement: if expr { ... } elif expr { ... } else { ... }
+if_statement = { "if" ~ expression ~ block ~ elif_block* ~ else_block? }
+
+// Elif block: elif expr { ... }
+elif_block = { "elif" ~ expression ~ block }
+
+// Else block: else { ... }
+else_block = { "else" ~ block }
+
+// While statement: while expr { ... }
+while_statement = { "while" ~ expression ~ block }
+
+// Expressions: comparison, sum, term, factor
+expression = _{ comparison }
+
+// Comparison: sum comp_op sum
+comparison = { sum ~ (comp_op ~ sum)* }
+
+// Comparison operators: ==, !=, <=, >=, <, >
+comp_op = { "==" | "!=" | "<=" | ">=" | "<" | ">" }
+
+// Sum: term add_op term
+sum = { term ~ (add_op ~ term)* }
+
+// Addition operators: +, -
+add_op = { "+" | "-" }
+
+// Term: factor mul_op factor
+term = { factor ~ (mul_op ~ factor)* }
+
+// Multiplication operators: *, /
+mul_op = { "*" | "/" }
+
+// Factors: function call, number, string, array, dict, identifier, parenthesized expr
+factor = { function_call | number | string | array | dict | IDENTIFIER | "(" ~ expression ~ ")" }
+
+// Function call: name(expr, expr, ...)
+function_call = { IDENTIFIER ~ "(" ~ (expression ~ ("," ~ expression)*)? ~ ")" }
+
+// Literals: string, number, array, dict
+string = @{ "\"" ~ (escape_sequence | (!"\"" ~ ANY))* ~ "\"" }
+
+// Escape sequences: \", \n, \t, \r, \\, \0
+escape_sequence = _{ "\\" ~ ("\"" | "n" | "t" | "r" | "\\" | "0") }
+
+// Number: digits with optional decimal point
+number = @{ ASCII_DIGIT+ ~ ("." ~ ASCII_DIGIT+)? }
+
+// Array: [expr, expr, ...]
+array = { "[" ~ (expression ~ ("," ~ expression)*)? ~ "]" }
+
+// Dictionary: {key: value, key: value, ...}
+dict = { "{" ~ (dict_entry ~ ("," ~ dict_entry)*)? ~ "}" }
+
+// Dictionary entry: key: value
+dict_entry = { string ~ ":" ~ expression }
+
+// Identifier: name starting with a letter or underscore
+IDENTIFIER = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
