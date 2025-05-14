@@ -1,11 +1,13 @@
 print("Converter:")
 
-choice = 0
-choices = [1, 2, 3, 4]
+var choice = 0
+var choices = [1, 2, 3, 4]
+
+print("(1) Pounds to Euros")
+print("(2) Pounds to Dollars")
+print("(3) Euros to Pounds")
+print("(4) Dollars to Pounds")
 
 while choice !in choices {
-    print("(1) Pounds to Euros")
-    print("(2) Pounds to Dollars")
-    print("(3) Euros to Pounds")
-    print("(4) Dollars to Pounds")
+    choice = input(": ")
 }

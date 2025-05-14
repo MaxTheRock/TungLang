@@ -66,8 +66,8 @@ expression = _{ comparison }
 // Comparison: sum comp_op sum
 comparison = { sum ~ (comp_op ~ sum)* }
 
-// Comparison operators: ==, !=, <=, >=, <, >
-comp_op = { "==" | "!=" | "<=" | ">=" | "<" | ">" }
+// Comparison operators: ==, !=, <=, >=, <, >, in, !in
+comp_op = { "==" | "!=" | "<=" | ">=" | "<" | ">" | "in" | "!in" }
 
 // Sum: term add_op term
 sum = { term ~ (add_op ~ term)* }

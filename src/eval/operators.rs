@@ -194,6 +194,14 @@ pub fn apply_operator(left: Value, right: Value, op: &str) -> Value {
             Value::Boolean(dict.contains_key(&key))
         },
         
+        // Python-like 'not in' operator for arrays and dicts
+        (item, Value::Array(arr), "!in") => {
+            Value::Boolean(!arr.contains(&item))
+        },
+        (Value::String(key), Value::Dict(dict), "!in") => {
+            Value::Boolean(!dict.contains_key(&key))
+        },
+        
         // Fall through cases
         _ => {
             eprintln!("Error: Unsupported operation '{}' between types {:?} and {:?}", op, left, right.clone());
