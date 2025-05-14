@@ -1,9 +1,0 @@
-var amount = int(input("How many numbers do you want to add? "))
-var total = 0
-var current = 1
-
-while current <= amount {
-    var number = int(input("Please enter a number " + str(current) + " - "))
-    total = total + number
-    current = current + 1
-}
