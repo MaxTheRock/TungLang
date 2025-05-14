@@ -1,0 +1,31 @@
+# GCSE Computer Science Programming Task
+
+## Task: Currency Converter
+
+Create a simple currency converter program in TungLang (or any language you're comfortable with). This task covers key GCSE CS concepts including variables, input/output, selection, and mathematical operations.
+
+### Requirements:
+
+1. Display a welcome message explaining the program
+2. Show a menu of available currency conversions:
+   - 1: Pounds to Euros
+   - 2: Pounds to Dollars
+   - 3: Euros to Pounds
+   - 4: Dollars to Pounds
+
+3. Ask the user to select an option (1-4)
+4. Ask the user to enter the amount to convert
+5. Calculate the conversion using these rates:
+   - £1 = €1.17
+   - £1 = $1.29
+
+6. Display the result with appropriate formatting (2 decimal places)
+7. Ask if the user wants to perform another conversion (yes/no)
+8. If yes, repeat from step 2, otherwise exit the program with a goodbye message
+
+### Extension Tasks:
+- Add input validation to ensure the user enters a valid option and amount
+- Allow the user to enter their own exchange rates
+- Create a log of all conversions performed in a session
+
+This task tests students' ability to handle user input, perform conditional logic, apply mathematical operations, and create a simple loop structure - all key concepts at GCSE CS level.

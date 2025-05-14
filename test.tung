@@ -1,11 +1,11 @@
-var amount = input("How many numbers do you want to add? ")
-var total = 0
-var current = 1
+print("Converter:")
 
-while current <= int(amount) {
-    var number = input("Please enter a number " + str(current) + " - ")
-    total = total + number
-    current = current + 1
+choice = 0
+choices = [1, 2, 3, 4]
+
+while choice !in choices {
+    print("(1) Pounds to Euros")
+    print("(2) Pounds to Dollars")
+    print("(3) Euros to Pounds")
+    print("(4) Dollars to Pounds")
 }
-
-print(total)

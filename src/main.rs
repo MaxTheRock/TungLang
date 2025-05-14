@@ -2,11 +2,14 @@ mod eval;
 mod interpreter;
 mod parser;
 mod value;
+mod stdlib;
 use crate::interpreter::run_program;
 use crate::parser::{Rule, TungParser};
 use clap::Parser;
 use pest::Parser as PestParserTrait;
-use std::fs;
+use ::std::fs;
+use ::std::path;
+use ::std::ffi;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]
@@ -19,10 +22,10 @@ pub struct Args {
 fn main() -> miette::Result<()> {
     let args: Args = Args::parse();
 
-    let path: &std::path::Path = std::path::Path::new(&args.file);
+    let path: &path::Path = path::Path::new(&args.file);
     if path
         .extension()
-        .and_then(|s: &std::ffi::OsStr| s.to_str())
+        .and_then(|s: &ffi::OsStr| s.to_str())
         .map(|s: &str| s.eq_ignore_ascii_case("tung"))
         != Some(true)
     {
