@@ -16,20 +16,20 @@ while choice !in choices {
     }
 }
 
-var amount = input("Enter amount to convert: ")
+var amount = float(input("Enter amount to convert: "))
 
 if choice == 1 {
-    amount *= 1.17
+    amount *= 1.18
     symbol = "€"
 } elif choice == 2 {
-    amount *= 1.29
+    amount *= 1.27
     symbol = "$"
 } elif choice == 3 {
-    amount /= 1.17
+    amount *= 0.85
     symbol = "£"
 } elif choice == 4 {
-    amount /= 1.29
+    amount *= 0.79
     symbol = "£"
 }
 
-print(symbol + amount)
+print(symbol + str(round(amount, 2)))
