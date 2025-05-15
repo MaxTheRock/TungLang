@@ -1,9 +1,9 @@
-use crate::stdlib::StdLib;
+use crate::eval::evaluate_expression::evaluate_expression;
 use crate::parser::Rule;
+use crate::stdlib::StdLib;
 use crate::value::Value;
 use pest::iterators::{Pair, Pairs};
 use std::collections::HashMap;
-use crate::eval::evaluate_expression::evaluate_expression;
 
 pub fn run_program(parsed: Pairs<Rule>) -> miette::Result<()> {
     let mut variables: HashMap<String, Value> = HashMap::new();
@@ -33,7 +33,10 @@ fn execute_statement(
             if variables.contains_key(&var_name) {
                 variables.insert(var_name, value);
             } else {
-                return Err(miette::miette!("Assignment to undefined variable '{}'.", var_name));
+                return Err(miette::miette!(
+                    "Assignment to undefined variable '{}'.",
+                    var_name
+                ));
             }
         }
         Rule::augmented_assignment => {
@@ -43,11 +46,15 @@ fn execute_statement(
             let op: &str = op_pair.as_str();
             let value: Value = evaluate_expression(inner.next().unwrap(), variables, stdlib)?;
             if let Some(current) = variables.get(&var_name).cloned() {
-                let op_str: &str = &op[..op.len()-1];
-                let new_value: Value = crate::eval::operators::apply_operator(current, value, op_str)?;
+                let op_str: &str = &op[..op.len() - 1];
+                let new_value: Value =
+                    crate::eval::operators::apply_operator(current, value, op_str)?;
                 variables.insert(var_name, new_value);
             } else {
-                return Err(miette::miette!("Assignment to undefined variable '{}'.", var_name));
+                return Err(miette::miette!(
+                    "Assignment to undefined variable '{}'.",
+                    var_name
+                ));
             }
         }
         Rule::print_statement => {
@@ -60,7 +67,9 @@ fn execute_statement(
                 Value::Boolean(b) => println!("{}", b),
                 Value::Array(arr) => println!("{:?}", arr),
                 Value::Dict(map) => println!("{:?}", map),
-                Value::Undefined => return Err(miette::miette!("Attempted to print an undefined value.")),
+                Value::Undefined => {
+                    return Err(miette::miette!("Attempted to print an undefined value."))
+                }
             }
         }
         Rule::if_statement => {

@@ -38,7 +38,7 @@ impl std::fmt::Display for Value {
                     first = false;
                 }
                 write!(f, "]")
-            },
+            }
             Value::Dict(d) => {
                 write!(f, "{{")?;
                 let mut first = true;
@@ -50,7 +50,7 @@ impl std::fmt::Display for Value {
                     first = false;
                 }
                 write!(f, "}}")
-            },
+            }
             Value::Undefined => write!(f, "undefined"),
         }
     }

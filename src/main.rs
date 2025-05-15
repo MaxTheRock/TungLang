@@ -1,15 +1,15 @@
 mod eval;
 mod interpreter;
 mod parser;
-mod value;
 mod stdlib;
+mod value;
 use crate::interpreter::run_program;
 use crate::parser::{Rule, TungParser};
-use clap::Parser;
-use pest::Parser as PestParserTrait;
+use ::std::ffi;
 use ::std::fs;
 use ::std::path;
-use ::std::ffi;
+use clap::Parser;
+use pest::Parser as PestParserTrait;
 
 #[derive(Parser)]
 #[command(author, version, about, long_about = None)]

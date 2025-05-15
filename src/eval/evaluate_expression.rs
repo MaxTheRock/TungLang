@@ -1,6 +1,6 @@
 use crate::parser::Rule;
-use crate::value::Value;
 use crate::stdlib::StdLib;
+use crate::value::Value;
 use pest::iterators::{Pair, Pairs};
 use std::collections::HashMap;
 
@@ -22,13 +22,16 @@ pub fn evaluate_expression(
         }
         Rule::string => {
             let s: &str = pair.as_str();
-            Ok(Value::String(s[1..s.len()-1].to_string()))
+            Ok(Value::String(s[1..s.len() - 1].to_string()))
         }
         Rule::IDENTIFIER => {
             let name: &str = pair.as_str();
             match variables.get(name).cloned() {
                 Some(val) => Ok(val),
-                None => Err(miette::miette!("Error: Variable '{}' is not defined.", name)),
+                None => Err(miette::miette!(
+                    "Error: Variable '{}' is not defined.",
+                    name
+                )),
             }
         }
         Rule::function_call => {
@@ -42,7 +45,10 @@ pub fn evaluate_expression(
                 let result = func(&args);
                 Ok(result)
             } else {
-                Err(miette::miette!("Error: Function '{}' is not defined.", func_name))
+                Err(miette::miette!(
+                    "Error: Function '{}' is not defined.",
+                    func_name
+                ))
             }
         }
         Rule::comparison | Rule::sum | Rule::term => {

@@ -13,37 +13,45 @@ pub fn std_min(args: &[Value]) -> Value {
             if array.is_empty() {
                 return Value::Undefined;
             }
-            
+
             let mut min_value = array[0].clone();
-            
+
             for value in array {
                 match (value, &min_value) {
                     (Value::Number(n1), Value::Number(n2)) if n1 < n2 => min_value = value.clone(),
                     (Value::Float(f1), Value::Float(f2)) if f1 < f2 => min_value = value.clone(),
-                    (Value::Number(n), Value::Float(f)) if (*n as f64) < *f => min_value = value.clone(),
-                    (Value::Float(f), Value::Number(n)) if *f < (*n as f64) => min_value = value.clone(),
+                    (Value::Number(n), Value::Float(f)) if (*n as f64) < *f => {
+                        min_value = value.clone()
+                    }
+                    (Value::Float(f), Value::Number(n)) if *f < (*n as f64) => {
+                        min_value = value.clone()
+                    }
                     (Value::String(s1), Value::String(s2)) if s1 < s2 => min_value = value.clone(),
                     _ => {}
                 }
             }
-            
+
             min_value
         }
         _ => {
             // Find min among the arguments
             let mut min_value = args[0].clone();
-            
+
             for value in args {
                 match (value, &min_value) {
                     (Value::Number(n1), Value::Number(n2)) if n1 < n2 => min_value = value.clone(),
                     (Value::Float(f1), Value::Float(f2)) if f1 < f2 => min_value = value.clone(),
-                    (Value::Number(n), Value::Float(f)) if (*n as f64) < *f => min_value = value.clone(),
-                    (Value::Float(f), Value::Number(n)) if *f < (*n as f64) => min_value = value.clone(),
+                    (Value::Number(n), Value::Float(f)) if (*n as f64) < *f => {
+                        min_value = value.clone()
+                    }
+                    (Value::Float(f), Value::Number(n)) if *f < (*n as f64) => {
+                        min_value = value.clone()
+                    }
                     (Value::String(s1), Value::String(s2)) if s1 < s2 => min_value = value.clone(),
                     _ => {}
                 }
             }
-            
+
             min_value
         }
     }
@@ -60,37 +68,45 @@ pub fn std_max(args: &[Value]) -> Value {
             if array.is_empty() {
                 return Value::Undefined;
             }
-            
+
             let mut max_value = array[0].clone();
-            
+
             for value in array {
                 match (value, &max_value) {
                     (Value::Number(n1), Value::Number(n2)) if n1 > n2 => max_value = value.clone(),
                     (Value::Float(f1), Value::Float(f2)) if f1 > f2 => max_value = value.clone(),
-                    (Value::Number(n), Value::Float(f)) if (*n as f64) > *f => max_value = value.clone(),
-                    (Value::Float(f), Value::Number(n)) if *f > (*n as f64) => max_value = value.clone(),
+                    (Value::Number(n), Value::Float(f)) if (*n as f64) > *f => {
+                        max_value = value.clone()
+                    }
+                    (Value::Float(f), Value::Number(n)) if *f > (*n as f64) => {
+                        max_value = value.clone()
+                    }
                     (Value::String(s1), Value::String(s2)) if s1 > s2 => max_value = value.clone(),
                     _ => {}
                 }
             }
-            
+
             max_value
         }
         _ => {
             // Find max among the arguments
             let mut max_value = args[0].clone();
-            
+
             for value in args {
                 match (value, &max_value) {
                     (Value::Number(n1), Value::Number(n2)) if n1 > n2 => max_value = value.clone(),
                     (Value::Float(f1), Value::Float(f2)) if f1 > f2 => max_value = value.clone(),
-                    (Value::Number(n), Value::Float(f)) if (*n as f64) > *f => max_value = value.clone(),
-                    (Value::Float(f), Value::Number(n)) if *f > (*n as f64) => max_value = value.clone(),
+                    (Value::Number(n), Value::Float(f)) if (*n as f64) > *f => {
+                        max_value = value.clone()
+                    }
+                    (Value::Float(f), Value::Number(n)) if *f > (*n as f64) => {
+                        max_value = value.clone()
+                    }
                     (Value::String(s1), Value::String(s2)) if s1 > s2 => max_value = value.clone(),
                     _ => {}
                 }
             }
-            
+
             max_value
         }
     }
@@ -120,14 +136,14 @@ pub fn std_sum(args: &[Value]) -> Value {
                         } else {
                             sum_int += n;
                         }
-                    },
+                    }
                     Value::Float(f) => {
                         if !is_float {
                             sum_float = sum_int as f64;
                             is_float = true;
                         }
                         sum_float += f;
-                    },
+                    }
                     _ => return Value::Undefined, // Non-numeric value
                 }
             }
@@ -137,7 +153,7 @@ pub fn std_sum(args: &[Value]) -> Value {
             } else {
                 Value::Number(sum_int)
             }
-        },
+        }
         _ => Value::Undefined,
     }
 }
@@ -167,7 +183,7 @@ pub fn std_round(args: &[Value]) -> Value {
                 let factor = 10.0f64.powi(digits as i32);
                 Value::Float((f * factor).round() / factor)
             }
-        },
+        }
         _ => Value::Undefined,
     }
 }
