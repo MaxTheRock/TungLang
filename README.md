@@ -19,3 +19,4 @@ To add new keyword aliases, modify the `FUNCTION_ALIASES` and `CONTROL_ALIASES` 
 | `else`           | `saturnita`     |
 | `while`          | `bombadillo`    |
 | `for`            | `tralala`       |
+| `var`            | `capu`       |
