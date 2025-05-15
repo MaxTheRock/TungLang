@@ -1,35 +1,35 @@
-print("Converter:")
+tung("Converter:")
 
 var choice = 0
 var choices = [1, 2, 3, 4]
 var symbol = ""
 
-print("(1) Pounds to Euros")
-print("(2) Pounds to Dollars")
-print("(3) Euros to Pounds")
-print("(4) Dollars to Pounds")
+tung("(1) Pounds to Euros")
+tung("(2) Pounds to Dollars")
+tung("(3) Euros to Pounds")
+tung("(4) Dollars to Pounds")
 
-while choice !in choices {
-    choice = int(input(": "))
-    if choice !in choices {
-        print("Please enter a number shown above.")
+bombadillo choice !in choices {
+    choice = tripi(sahur(": "))
+    la_vaca choice !in choices {
+        tung("Please enter a number shown above.")
     }
 }
 
-var amount = float(input("Enter amount to convert: "))
+var amount = float(sahur("Enter amount to convert: "))
 
-if choice == 1 {
+la_vaca choice == 1 {
     amount *= 1.18
     symbol = "€"
-} elif choice == 2 {
+} saturno choice == 2 {
     amount *= 1.27
     symbol = "$"
-} elif choice == 3 {
+} saturno choice == 3 {
     amount *= 0.85
     symbol = "£"
-} elif choice == 4 {
+} saturno choice == 4 {
     amount *= 0.79
     symbol = "£"
 }
 
-print(symbol + str(round(amount, 2)))
+tung(symbol + str(round(amount, 2)))

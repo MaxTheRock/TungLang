@@ -6,16 +6,16 @@ Italian Brainrot language similar to python
 
 TungLang supports both standard keywords and their Italian Brainrot-themed alternatives. This means you can use either `print()` or `tung()` in your code - they work the same way!
 
-To add new keyword aliases, simply modify the `FUNCTION_ALIASES` and `CONTROL_ALIASES` HashMaps in the `keywords.rs` file.
+To add new keyword aliases, modify the `FUNCTION_ALIASES` and `CONTROL_ALIASES` `HashMap`s in the `keywords.rs` file.
 
-| Python            | TungLang                |
-| ----------------- | ---------------------   |
-| print()           | tung()                  |
-| input()           | sahur()                 |
-| int()             | tripi()                 |
-| quit()            | tralalelo()             |
-| if {statement}    | la_vaca {statement}     |
-| elif {statement}  | saturno {statement}     |
-| else {statement}  | saturnita {statement}   |
-| while {argument}{}| bombadillo {argument}{} |
-| for {argument}{}  | tralala{argument}{}     |
+| Python   Keyword | TungLang Alias  |
+|------------------|-----------------|
+| `print()`        | `tung()`        |
+| `input()`        | `sahur()`       |
+| `int()`          | `tripi()`       |
+| `quit()`         | `tralalelo()`   |
+| `if`             | `la_vaca`       |
+| `elif`           | `saturno`       |
+| `else`           | `saturnita`     |
+| `while`          | `bombadillo`    |
+| `for`            | `tralala`       |

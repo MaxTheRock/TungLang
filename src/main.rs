@@ -1,10 +1,12 @@
 mod eval;
 mod interpreter;
 mod parser;
+mod preprocess;
 mod stdlib;
 mod value;
 use crate::interpreter::run_program;
 use crate::parser::{Rule, TungParser};
+use crate::preprocess::preprocess_code;
 use ::std::ffi;
 use ::std::fs;
 use ::std::path;
@@ -38,6 +40,8 @@ fn main() -> miette::Result<()> {
             return Err(miette::miette!("Error reading file {}: {}", args.file, e));
         }
     };
+
+    let program = preprocess_code(&program);
 
     let parsed: pest::iterators::Pairs<Rule> = match TungParser::parse(Rule::program, &program) {
         Ok(mut pairs) => pairs.next().unwrap().into_inner(),

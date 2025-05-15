@@ -8,3 +8,4 @@ pest = "2.8.0"
 pest_derive = "2.8.0"
 miette = { version = "7.6.0", features = ["fancy"] }
 clap = { version = "4.5.38", features = ["derive"] }
+regex = "1.11.1"
